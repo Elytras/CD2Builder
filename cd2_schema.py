@@ -2421,44 +2421,44 @@ class ConstantFolder:
         # Extract operands (skip "Mutate" key)
         operands = {k: v for k, v in content.items() if k != "Mutate"}
 
-        if mutator_name == "Add":
-            a = operands.get("A", 0)
-            b = operands.get("B", 0)
-            # Identity: x + 0 = x
-            if b == 0:
-                return a
-            if a == 0:
-                return b
-
-        elif mutator_name == "Subtract":
-            a = operands.get("A", 0)
-            b = operands.get("B", 0)
-            # Identity: x - 0 = x
-            if b == 0:
-                return a
-            # Note: 0 - x is not x, it is -x (which we don't simplify here yet)
-
-        elif mutator_name == "Multiply":
-            a = operands.get("A", 1)
-            b = operands.get("B", 1)
-            # Identity: x * 1 = x
-            if b == 1:
-                return a
-            if a == 1:
-                return b
-            # Zero property: x * 0 = 0 (Evaluates to 0 even if x is complex)
-            if a == 0 or b == 0:
-                return 0
-
-        elif mutator_name == "Divide":
-            a = operands.get("A")
-            b = operands.get("B")
-            # Identity: x / 1 = x
-            if b == 1:
-                return a
-            # Zero property: 0 / x = 0 (assuming x != 0)
-            if a == 0:
-                return 0
+        # if mutator_name == "Add":
+        #    a = operands.get("A", 0)
+        #    b = operands.get("B", 0)
+        #    # Identity: x + 0 = x
+        #    if b == 0:
+        #        return a
+        #    if a == 0:
+        #        return b
+        #
+        # elif mutator_name == "Subtract":
+        #    a = operands.get("A", 0)
+        #    b = operands.get("B", 0)
+        #    # Identity: x - 0 = x
+        #    if b == 0:
+        #        return a
+        #    # Note: 0 - x is not x, it is -x (which we don't simplify here yet)
+        #
+        # elif mutator_name == "Multiply":
+        #    a = operands.get("A", 1)
+        #    b = operands.get("B", 1)
+        #    # Identity: x * 1 = x
+        #    if b == 1:
+        #        return a
+        #    if a == 1:
+        #        return b
+        #    # Zero property: x * 0 = 0 (Evaluates to 0 even if x is complex)
+        #    if a == 0 or b == 0:
+        #        return 0
+        #
+        # elif mutator_name == "Divide":
+        #    a = operands.get("A")
+        #    b = operands.get("B")
+        #    # Identity: x / 1 = x
+        #    if b == 1:
+        #        return a
+        #    # Zero property: 0 / x = 0 (assuming x != 0)
+        #    if a == 0:
+        #        return 0
 
         # Check if all operands are constant
         if not self._all_constant(operands):

@@ -148,6 +148,34 @@ if __name__ == "__main__":
             return 0
         return w / (mx - mn)
 
+    # EWI
+    BaseDelay = 145 + ByDNA(0, {"Mining,x,2": 12}).Alias("Base")
+    FrequencyIncrease = PerMinuteToPerSecond(10) / (
+        ByDNA(
+            10,
+            {
+                "Mining,2": 12,
+                "Mining,x,2": 15,
+                "Mining,x,3": 20,
+                "PE": 12,
+                "PE,3": 20,
+                "Escort,2": 20,
+                "Escort,3": 25,
+                "Refinery,x,2": 15,
+                "Refinery,x,3": 17.5,
+                "Sabotage": 20,
+                "DeepScan": 15,
+            },
+        )
+        + ByPlayerCount(0)
+    )
+
+    WaveInterval = WeightedBracket(
+        1,
+        BaseDelay - FrequencyIncrease,
+        BaseDelay + 40 - FrequencyIncrease,
+    )
+
     # Difficulty
     difficulty = DifficultyProfile(
         Name=Name,
@@ -207,36 +235,7 @@ if __name__ == "__main__":
                 key=efficiency_ratio_key,
             ),
             StationaryDifficulty=[WeightedBracket(1, ByDNA(375), ByDNA(525))],
-            EnemyWaveInterval=[
-                WeightedBracket(
-                    1,
-                    145
-                    + ByDNA(0, {"Mining,x,2": 12})
-                    - (
-                        PerMinuteToPerSecond(10)
-                        / (
-                            ByDNA(
-                                10,
-                                {
-                                    "Mining,2": 12,
-                                    "Mining,x,2": 15,
-                                    "Mining,x,3": 20,
-                                    "PE": 12,
-                                    "PE,3": 20,
-                                    "Escort,2": 20,
-                                    "Escort,3": 25,
-                                    "Refinery,x,2": 15,
-                                    "Refinery,x,3": 17.5,
-                                    "Sabotage": 20,
-                                    "DeepScan": 15,
-                                },
-                            )
-                            + ByPlayerCount(0)
-                        )
-                    ),
-                    1,
-                )
-            ],
+            EnemyWaveInterval=[WaveInterval],
         ),
     )
 
