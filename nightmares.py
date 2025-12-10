@@ -148,6 +148,7 @@ if __name__ == "__main__":
             return 0
         return w / (mx - mn)
 
+    DorettaSettings = EscortMuleSettings(0.1, 0.8, 0, 0.1)
     # EWI
     BaseDelay = 145 + ByDNA(0, {"Mining,x,2": 12}).Alias("Base")
     FrequencyIncrease = PerMinuteToPerSecond(10) / (
@@ -237,6 +238,15 @@ if __name__ == "__main__":
             StationaryDifficulty=[WeightedBracket(1, ByDNA(375), ByDNA(525))],
             EnemyWaveInterval=[WaveInterval],
         ),
+        # ======================================================
+        EscortMule=DorettaSettings,
+        # ======================================================
+        SoundCues=[
+            SoundCue(
+                TriggerOnChange(DwarvesDown, True),
+                "/Game/Audio/SFX/OctoberFest/GhostLaugh_Cue.GhostLaugh_Cue",
+            )
+        ],
     )
 
     difficulty.save("out.json")
