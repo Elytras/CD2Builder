@@ -172,18 +172,17 @@ class VarDefinition(CD2Object):
 
 
 def _variadic_mutator(name: str, *args, **kwargs) -> Expression:
-    """Helper for Add, Mult, Or, And to map args to A, B, C.
+    """Helper for Add, Mul, Or, And to map positional args to A, B, C, etc.
 
     Automatically maps positional arguments to letter keys (A, B, C, ...)
     while preserving named keyword arguments and expression aliases.
     """
     result = {"Mutate": name}
 
-    # 1. Fill named kwargs
-    result.update(kwargs)  # user explicit args like Add(A=1) override? Or just merge.
+    # Fill named kwargs
+    result.update(kwargs)
 
-    # 2. Fill positional args (or aliased positional args)
-    # We need to find the first unused letter key.
+    # Fill positional args, finding the first unused letter key
 
     def get_next_key():
         for i in range(26):
@@ -253,11 +252,8 @@ class Expression(CD2Object):
             )
 
             if is_flattenable and not alias:
-                # If the node itself has an alias, we can't flatten it into this one perfectly
-                # without losing the alias grouping, unless we merge its items?
-                # Actually, if "DoubleOnExtraction" is a Mul(A,B), and we do Mul(Double=Mul(A,B)),
-                # we want "Double": Mul(A,B). We don't want to flatten Mul(A,B) into parent.
-                # So: Only flatten if NO alias.
+                # Only flatten operands if the node itself has no alias.
+                # Named aliases should be preserved as-is (e.g., Double=Mul(A,B)).
 
                 # Separate positional vs named
                 positional = []
@@ -534,20 +530,20 @@ class MinMax(CD2Object):
         # Case 1: Both numeric → enforce ordering unambiguously.
         if isinstance(min, (int, float)) and isinstance(max, (int, float)):
             if min <= max:
-                self.min = float(min)
-                self.max = float(max)
+                self.Min = float(min)
+                self.Max = float(max)
             else:
                 # Swap automatically
-                self.min = float(max)
-                self.max = float(min)
             self.ambiguous = False
+                self.Min = float(max)
+                self.Max = float(min)
             return
 
         # Case 2: At least one side is an Expression, Variable, dict, etc.
-        #         Ordering is ambiguous → record that fact.
-        self.min = min
-        self.max = max
         self.ambiguous = True
+        #         Ordering is ambiguous → keep as-is.
+        self.Min = min
+        self.Max = max
 
 
 @dataclass
@@ -664,7 +660,7 @@ class DwarvesSettings(CD2Object):
     RegenDelayAfterDamage: Optional[MFloat] = None
     FallDamageStartVelocity: Optional[MFloat] = None  # Default 1000
     FallDamageModifier: Optional[MFloat] = None  # Default 0.175
-    Test: Optional[MBool] = None
+    Test: Optional[MBool] = None  # Actual field in CD2
 
 
 @dataclass
@@ -900,7 +896,7 @@ class DifficultyProfile(CD2Object):
             if val is None:
                 continue
 
-            # Special handling for Vars if it's a list of Variables
+            # Convert list of Variables to dict of VarDefinitions
             if key == "Vars" and isinstance(val, list):
                 val = {v.Name: v.definition for v in val if isinstance(v, Variable)}
 
@@ -1370,21 +1366,15 @@ def ByBiome(default, **biomes) -> Expression:
 def ByDNA(default, variants_dict=None, **variants) -> Expression:
     """Returns Any: Switches value based on DNA mission variant.
 
-    Valid DNA string format: Type[,Length][,Complexity]
-    - Type: required, must be in _VALID_DNA_MISSIONS
-    - Length: optional, must be in _VALID_LENGTH_LEVELS
-    - Complexity: optional, must be in _VALID_COMPLEXITY_LEVELS
-
-    Examples: "PE", "DeepScan", "PE,2", "PE,2,3", "x,x,1"
+    DNA format: Type[,Length][,Complexity]
+    - Type: Mission type (required)
+    - Length: Level 1-3 or 'x' (optional)
+    - Complexity: Level 1-3 or 'x' (optional)
 
     Args:
-        default: Default value if no DNA variant matches
-        variants_dict: Optional dict of DNA variants (use when keys contain commas)
-        **variants: DNA variants as keyword arguments (use when keys are valid identifiers)
-
-    Usage:
-        ByDNA(1.0, PE=1.5, Mining=2.0)  # Simple identifiers
-        ByDNA(200, {"Mining,1,1": 200, "Mining,1,2": 225})  # Complex keys with commas
+        default: Default value if no variant matches
+        variants_dict: Dict for complex keys (e.g., {"Mining,1,1": 200})
+        **variants: Simple identifier keys (e.g., PE=1.5, Mining=2.0)
     """
     # Merge variants_dict and kwargs
     if variants_dict is not None:
@@ -1647,10 +1637,7 @@ def Lerp(start, end, t) -> Expression:
 
 
 def InverseLerp(val, min_val, max_val) -> Expression:
-    """
-    Returns Float: The 't' value of val between min and max.
-    Result = (val - min) / (max - min)
-    """
+    """Returns Float: Normalized position of val between min_val and max_val (0.0 to 1.0)."""
     return Div(Sub(val, min_val), Sub(max_val, min_val))
 
 
@@ -1750,17 +1737,12 @@ def TriangleWave(period, min_val, max_val) -> Expression:
 
 
 def OnKill(ed_or_eds) -> Expression:
-    """
-    Returns Boolean: True for one tick when a specific enemy type is killed.
-    """
+    """Returns Boolean: True for one tick when enemy type is killed."""
     return TriggerOnChange(EnemiesKilled(ed_or_eds))
 
 
 def OnSpawn(ed_or_eds) -> Expression:
-    """
-    Returns Boolean: True for one tick when a specific enemy type spawns.
-    Note: Requires tracking EnemyCount delta increase.
-    """
+    """Returns Boolean: True for one tick when enemy type spawns."""
     return TriggerOnChange(EnemyCount(ed_or_eds), rise_only=True)
 
 
@@ -1810,10 +1792,8 @@ def InRange(val, min_val, max_val) -> Expression:
 
 
 def Switch(default, *cases) -> Expression:
-    """
-    Functional switch/case for Mutator logic.
-    Usage: Switch(DefaultVal, (Condition1, Value1), (Condition2, Value2))
-    Prioritizes first cases (If Cond1 then Val1 Else (If Cond2 Then Val2 Else Default)).
+    """Functional switch/case: returns first matching value.
+    Usage: Switch(DefaultVal, (Cond1, Val1), (Cond2, Val2))
     """
     expr = default
     for cond, val in reversed(cases):
@@ -2123,8 +2103,7 @@ class DifficultyBuilder:
         return DifficultyProfile(**self.config)
 
 
-# Usage:
-# profile = (DifficultyBuilder("MyDifficulty")
+# Example: profile = (DifficultyBuilder("MyDifficulty")
 #     .with_description("Test difficulty")
 #     .with_max_players(4)
 #     .add_variable("SpeedMult", 1.5)
@@ -2312,7 +2291,7 @@ class CircularDependencyDetector:
     def _has_cycle_dfs(
         self, node: str, deps: dict, visited: set, rec_stack: set, path: list
     ) -> bool:
-        """DFS-based cycle detection."""
+        """Detect cycles using DFS with recursion stack."""
         visited.add(node)
         rec_stack.add(node)
         path.append(node)
