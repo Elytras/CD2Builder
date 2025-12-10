@@ -1,8 +1,10 @@
 *.py
-!cd2_schema.py
 *.json
-!exampledifficulty.json
 *.code*
 __*__
 .*
+
+!cd2_schema.py
+!nightmares.py
+!nightmares.json
 !.gitignore
