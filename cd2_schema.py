@@ -511,14 +511,12 @@ class WeightedBracket(CD2Object):
                 # Swap automatically
                 self.min = float(max)
                 self.max = float(min)
-            self.ambiguous = False
             return
 
         # Case 2: At least one side is an Expression, Variable, dict, etc.
-        #         Ordering is ambiguous → record that fact.
+        #         Ordering is ambiguous → keep as-is.
         self.min = min
         self.max = max
-        self.ambiguous = True
 
 
 @dataclass
@@ -534,13 +532,11 @@ class MinMax(CD2Object):
                 self.Max = float(max)
             else:
                 # Swap automatically
-            self.ambiguous = False
                 self.Min = float(max)
                 self.Max = float(min)
             return
 
         # Case 2: At least one side is an Expression, Variable, dict, etc.
-        self.ambiguous = True
         #         Ordering is ambiguous → keep as-is.
         self.Min = min
         self.Max = max
@@ -1154,14 +1150,14 @@ def ByResuppliesCalled(values_or_first, *args) -> Expression:
 
 
 def ByTime(initial, rate, start_delay=None) -> Expression:
-    """Returns Float: initial + rate * Max(0,Time-StartDelay). Time is time since mission start"""
+    """Returns Float: initial + rate * Max(0, Time - StartDelay)."""
     return Mut(
         "ByTime", InitialValue=initial, RateOfChange=rate, StartDelay=start_delay
     )
 
 
 def TimeDelta(initial, rate, start_delay=None) -> Expression:
-    """Alias for ByTime logic with different name in documentation."""
+    """Alias for ByTime. Returns Float: initial + rate * Max(0, Time - StartDelay)."""
     return Mut(
         "TimeDelta", InitialValue=initial, RateOfChange=rate, StartDelay=start_delay
     )
@@ -3139,31 +3135,3 @@ def export_to_json(profile: DifficultyProfile, path: str, minify=False):
     """Export profile to JSON with optional minification."""
     indent: Optional[int] = None if minify else 4
     profile.save(path, indent=indent)
-
-
-# ==========================================
-# PART 4: EXAMPLE USAGE
-# ==========================================
-if __name__ == "__main__":
-    # Example showing the Variadic arguments
-
-    # "Or" with keyword args
-    is_event = Or(
-        PE=Mut("DuringPECountdown"),
-        Extr=Mut("DuringExtraction"),
-        Def=Mut("DuringDefend"),
-    )
-    # Output: {"Mutate": "Or", "PE": ..., "Extr": ..., "Def": ...}
-
-    # "Add" with positional args
-    basic_math = Add(10, 20, 30)
-    # Output: {"Mutate": "Add", "A": 10, "B": 20, "C": 30}
-
-    profile = DifficultyProfile(
-        Name="Nightmares",
-        Description="Example",
-        MaxPlayers=16,
-        Vars={"IsEvent": VarDefinition(Type="Boolean", Value=is_event)},
-    )
-
-    print(json.dumps(profile.to_dict(), indent=2))
