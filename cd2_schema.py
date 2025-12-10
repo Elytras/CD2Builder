@@ -216,7 +216,7 @@ class Expression(CD2Object):
         self.no_optimize = False  # Flag to disable optimization on this expression
 
     def __bool__(self):
-        TypeError("can't be converted to bool")
+        raise TypeError("can't be converted to bool")
 
     def Alias(self, name: str):
         self.alias = name
@@ -2312,6 +2312,8 @@ class CircularDependencyDetector:
         """Extract all variable names referenced in an expression."""
         refs = set()
 
+        if isinstance(expr, Expression):
+            expr = expr.content
         if isinstance(expr, dict):
             if "Var" in expr:
                 refs.add(expr["Var"])
@@ -2397,7 +2399,7 @@ class VariableInliner:
 class ConstantFolder:
     """Recursively folds deterministic expressions with constant operands."""
 
-    def __init__(self, purity_analyzer: PurityAnalyzer, precision: int = 4):
+    def __init__(self, purity_analyzer: PurityAnalyzer, precision: int = 6):
         self.purity = purity_analyzer
         self.precision = precision
 
@@ -2471,84 +2473,107 @@ class ConstantFolder:
         operands = {k: v for k, v in content.items() if k != "Mutate"}
 
         # === 1. Smart Aggregation for ADD ===
-        # Handles mixed constants/complex types (e.g. 145 + 40 + ByDNA)
         if mutator_name == "Add":
             numeric_sum = 0
             complex_operands = {}
+            constant_keys = []
 
             for k, v in operands.items():
                 raw = self._get_raw(v)
                 if isinstance(raw, (int, float)):
                     numeric_sum += raw
+                    constant_keys.append(k)
                 else:
                     complex_operands[k] = v
 
-            # Case A: Everything was numeric
+            numeric_sum = self._round(numeric_sum)
+
             if not complex_operands:
-                return self._round(numeric_sum)
+                return numeric_sum
 
-            # Case B: Mixed (Identity Check: x + 0 = x)
-            # If sum is 0 and we have exactly one complex operand, return it.
-            if numeric_sum == 0 and len(complex_operands) == 1:
-                return list(complex_operands.values())[0]
+            # Explicitly type hint to avoid ambiguity
+            result: Dict[str, Any] = {"Mutate": "Add"}
 
-            # Case C: Partial Fold (e.g. 145 + 40 + ByDNA -> 185 + ByDNA)
-            # We reconstruct the dictionary with the summed constants
-            if numeric_sum != 0:
-                # We need a key for the number. "A" or "B" is standard.
-                # Avoid overwriting existing complex keys.
-                new_key = "A"
-                if "A" in complex_operands:
-                    new_key = "B"
-                # If both A and B are taken by complex objects, likely using custom keys.
-                # Just use "Constant" or reuse a free standard key.
+            if numeric_sum == 0:
+                if len(complex_operands) == 1:
+                    return list(complex_operands.values())[0]
+                result.update(complex_operands)
+                return result
 
-                result = complex_operands.copy()
-                result["Mutate"] = "Add"
-                result[new_key] = self._round(numeric_sum)
-                return result  # Return dict (will be wrapped by optimize)
+            result.update(complex_operands)
 
-            # If numeric_sum is 0 and multiple complex operands exist,
-            # we can't simplify further than removing the 0s.
-            # Returning None lets the original dict stand (or we could return cleaned dict).
-            return None
+            target_key = constant_keys[0] if constant_keys else "A"
+            if "A" in constant_keys:
+                target_key = "A"
+            elif "B" in constant_keys:
+                target_key = "B"
 
-        # === 2. Algebraic Identities for other operators ===
+            while target_key in result:
+                target_key = "B" if target_key == "A" else "A"
 
-        if mutator_name == "Subtract":
-            a = operands.get("A", 0)
-            b = operands.get("B", 0)
-            # Identity: x - 0 = x
-            if self._is_literal(b, 0):
-                return a
+            result[target_key] = numeric_sum
+            return result
 
+        # === 2. Smart Aggregation for MULTIPLY ===
         elif mutator_name == "Multiply":
-            # Note: Multiply doesn't aggregate easily like Add because order/keys might matter less?
-            # Actually Mul is commutative, but usually restricted to A/B in schemas.
-            a = operands.get("A", 1)
-            b = operands.get("B", 1)
+            numeric_product = 1
+            complex_operands = {}
+            constant_keys = []
 
-            # Zero property: x * 0 = 0
-            if self._is_literal(a, 0) or self._is_literal(b, 0):
-                return 0
-            # Identity: x * 1 = x
-            if self._is_literal(b, 1):
-                return a
-            if self._is_literal(a, 1):
-                return b
+            for k, v in operands.items():
+                raw = self._get_raw(v)
+                if isinstance(raw, (int, float)):
+                    if raw == 0:
+                        return 0
+                    numeric_product *= raw
+                    constant_keys.append(k)
+                else:
+                    complex_operands[k] = v
+
+            numeric_product = self._round(numeric_product)
+
+            if not complex_operands:
+                return numeric_product
+
+            result: Dict[str, Any] = {"Mutate": "Multiply"}
+
+            if numeric_product == 1:
+                if len(complex_operands) == 1:
+                    return list(complex_operands.values())[0]
+                result.update(complex_operands)
+                return result
+
+            result.update(complex_operands)
+
+            target_key = constant_keys[0] if constant_keys else "A"
+            if "A" in constant_keys:
+                target_key = "A"
+            elif "B" in constant_keys:
+                target_key = "B"
+
+            while target_key in result:
+                target_key = "B" if target_key == "A" else "A"
+
+            result[target_key] = numeric_product
+            return result
+
+        # === 3. Algebraic Identities ===
 
         elif mutator_name == "Divide":
             a = operands.get("A")
             b = operands.get("B")
-            # Zero property: 0 / x = 0
             if self._is_literal(a, 0):
                 return 0
-            # Identity: x / 1 = x
             if self._is_literal(b, 1):
                 return a
 
-        # === 3. Strict Constant Folding ===
-        # For remaining operations, ALL operands must be constants.
+        elif mutator_name == "Subtract":
+            a = operands.get("A", 0)
+            b = operands.get("B", 0)
+            if self._is_literal(b, 0):
+                return a
+
+        # === 4. Strict Constant Folding ===
 
         if not self._all_constant(operands):
             return None
@@ -2561,12 +2586,13 @@ class ConstantFolder:
                     return self._round(a - b)
 
             elif mutator_name == "Multiply":
-                result = 1
+                # RENAMED to avoid conflict with 'result' dict
+                accum_product = 1
                 for v in operands.values():
                     if not isinstance(v, (int, float)):
                         return None
-                    result *= v
-                return self._round(result)
+                    accum_product *= v
+                return self._round(accum_product)
 
             elif mutator_name == "Divide":
                 a = operands.get("A")
@@ -2613,8 +2639,69 @@ class ConstantFolder:
                 if isinstance(val, (int, float)):
                     return round(val)
 
-            # Add logic for Min, Max, And, Or, Not, If, IfFloat as needed
-            # (Copy from previous implementation if required)
+            elif mutator_name == "Max":
+                values = [v for v in operands.values() if isinstance(v, (int, float))]
+                if len(values) == len(operands):
+                    return max(values) if values else None
+
+            elif mutator_name == "Min":
+                values = [v for v in operands.values() if isinstance(v, (int, float))]
+                if len(values) == len(operands):
+                    return min(values) if values else None
+
+            elif mutator_name == "And":
+                if all(isinstance(v, bool) for v in operands.values()):
+                    return all(operands.values())
+
+            elif mutator_name == "Or":
+                if all(isinstance(v, bool) for v in operands.values()):
+                    return any(operands.values())
+
+            elif mutator_name == "Not":
+                val = operands.get("Value")
+                if isinstance(val, bool):
+                    return not val
+
+            elif mutator_name == "If":
+                cond = operands.get("Condition")
+                if isinstance(cond, bool):
+                    return operands.get("Then") if cond else operands.get("Else")
+
+            elif mutator_name == "IfFloat":
+                value = operands.get("Value")
+                then_val = operands.get("Then")
+                else_val = operands.get("Else")
+                op_key = None
+                benchmark = None
+                for key in ["==", "!=", ">", "<", ">=", "<="]:
+                    if key in content:
+                        op_key = key
+                        benchmark = content[key]
+                        break
+
+                if (
+                    op_key
+                    and isinstance(value, (int, float))
+                    and isinstance(benchmark, (int, float))
+                ):
+                    is_match = False
+                    if op_key == "==":
+                        is_match = value == benchmark
+                    elif op_key == "!=":
+                        is_match = value != benchmark
+                    elif op_key == ">":
+                        is_match = value > benchmark
+                    elif op_key == "<":
+                        is_match = value < benchmark
+                    elif op_key == ">=":
+                        is_match = value >= benchmark
+                    elif op_key == "<=":
+                        is_match = value <= benchmark
+
+                    final = then_val if is_match else else_val
+                    if isinstance(final, float):
+                        return self._round(final)
+                    return final
 
         except (ZeroDivisionError, TypeError, ValueError):
             return None
@@ -3037,61 +3124,90 @@ class ExpressionOptimizer:
         return {}
 
     def _optimize_object(self, obj: Any, constant_map: Dict[str, Any]) -> Any:
-        """Recursively optimize all Expression objects in an object.
+        """Recursively optimize all Expression objects in an object."""
 
-        Args:
-            obj: Object to optimize (may be Expression, dict, list, or CD2Object)
-            constant_map: Map of variable names to their constant values for propagation
-        """
-
+        # 1. Handle Variables (recursion base case for specific type)
         if isinstance(obj, Variable):
             # Skip optimization if marked with no_optimize
             if getattr(obj, "no_optimize", False):
                 return obj
 
-            # Check if this variable is a constant that should be inlined
+            # Inline constant variables immediately if enabled
             var_name = obj.Name if hasattr(obj, "Name") else None
             if var_name and var_name in constant_map and self.enable_inlining:
-                # Replace the variable reference with its constant value
                 return constant_map[var_name]
-            # Otherwise keep the variable as-is
             return obj
 
+        # 2. Handle Expressions (The Core Logic)
         if isinstance(obj, Expression):
             expr = obj
 
-            # Skip optimization if explicitly disabled on this expression
+            # Skip optimization if explicitly disabled
             if getattr(expr, "no_optimize", False):
                 return expr
 
-            # Step 2: Variable inlining (using constant_map)
-            if self.enable_inlining and constant_map:
-                expr = self.variable_inliner.inline(expr, constant_map)
+            # === CONVERGENCE LOOP ===
+            # Keep applying optimization passes until the object stops changing.
+            # Since the graph is a reducing DAG, this is guaranteed to finish.
 
-            # Step 3: Constant folding
-            if self.enable_constant_folding:
-                expr = self.constant_folder.optimize(expr, None)
+            current_obj = expr
 
-            # Step 4: NonZero promotion
-            if self.enable_nonzero:
-                expr = self.nonzero_promoter.optimize(expr)
+            while True:
+                # Capture state before passes
+                # We use repr() on content to detect structural changes deeply
+                prev_val = (
+                    current_obj.content
+                    if isinstance(current_obj, Expression)
+                    else current_obj
+                )
+                prev_repr = repr(prev_val)
 
-            # Step 5: Selector removal
-            if self.enable_selector_removal:
-                expr = self.selector_remover.optimize(expr)
+                # --- Pass 1: Variable Inlining ---
+                # (Might expose new constants)
+                if self.enable_inlining and constant_map:
+                    current_obj = self.variable_inliner.inline(
+                        current_obj, constant_map
+                    )
 
-            return expr
+                # --- Pass 2: Constant Folding ---
+                # (Might collapse math, e.g., 10/60 -> 0.166, or Add(X, 0) -> X)
+                if self.enable_constant_folding:
+                    current_obj = self.constant_folder.optimize(current_obj, None)
 
+                # --- Pass 3: NonZero Promotion ---
+                # (Might remove empty branches)
+                if self.enable_nonzero:
+                    current_obj = self.nonzero_promoter.optimize(current_obj)
+
+                # --- Pass 4: Selector Removal ---
+                # (Might resolve ByPlayerCount(0) -> 0)
+                if self.enable_selector_removal:
+                    current_obj = self.selector_remover.optimize(current_obj)
+
+                # Check for convergence
+                curr_val = (
+                    current_obj.content
+                    if isinstance(current_obj, Expression)
+                    else current_obj
+                )
+                curr_repr = repr(curr_val)
+
+                if prev_repr == curr_repr:
+                    # No changes occurred in this full cycle; we are stable.
+                    break
+
+            return current_obj
+
+        # 3. Handle Containers (Dict/List) - Recurse Children
         elif isinstance(obj, dict):
             return {k: self._optimize_object(v, constant_map) for k, v in obj.items()}
 
         elif isinstance(obj, list):
             return [self._optimize_object(item, constant_map) for item in obj]
 
+        # 4. Handle CD2Objects - Recurse Fields
         elif isinstance(obj, CD2Object):
-            # Optimize all fields in the dataclass (but skip Vars field)
             for field_name in obj.__annotations__:
-                # Never optimize the Vars field itself - variables stay unchanged
                 if field_name == "Vars":
                     continue
 
@@ -3101,6 +3217,7 @@ class ExpressionOptimizer:
                     setattr(obj, field_name, optimized_value)
             return obj
 
+        # 5. Primitives
         return obj
 
 
