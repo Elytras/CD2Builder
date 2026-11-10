@@ -111,6 +111,30 @@ validator does not refuse other names.
 
 A new enemy name under `Enemies` needs `Base`, a vanilla ED. An existing ED name edits that ED in place.
 
+## Checked in game
+
+The check ran 2026-11-10 through ue-mods' drgq. It used A/B jobs `cd2builder-load` at CD2Builder@b8b4c1a, runs
+`20261110-025935-1` and `-2`. Each difficulty was merged over drgq's test difficulty and loaded on the space rig, and
+CD2's `OnStateChanged` errors were traced. `[V]`
+
+- **`checks/ingame-good.json` loads with `Errors(out)=[]`.** It uses Vars, a per-player array, `Var`, `If` /
+  `IfFloat` / `ByTime`, `ByResuppliesCalled`, `ByBiome`, an edited ED and a new ED with `Base`.
+- **`checks/ingame-bad.json` gives exactly the six paths `cd2b.py validate` predicts, and nothing else.** CD2's
+  wording:
+
+  ```
+  Module "Bogus" not found
+  Unrecognized Enemy Field 'Health' [@.Enemies.ED_Spider_Grunt]
+  Invalid Value/Mutate [@.Dwarves.RegenHealthPerSecond.A] [@.Dwarves.RegenHealthPerSecond.A] [@.Dwarves.RegenHealthPerSecond]
+  Unrecognized Mutate NoSuchMutator. [@.Resupply.Cost]
+  Mutate Type Error Expected "CD2_Float_Mutator_C" Found "StringLiteral_C" [@.Caps.MaxActiveEnemies] [@.Caps.MaxActiveEnemies]
+  Unrecognized Field "MaxEnemies" [@.Caps.MaxEnemies]
+  ```
+
+  CD2 lists the two `Caps` errors twice, since Enable runs Update.
+- **CD2 puts an unknown enemy key's path on the enemy, not the key.** It also appends one `[@path]` per level an
+  error passes through.
+
 ## Regenerating after a CD2 update
 
 1. Extract the new pak (in Git Bash, set `MSYS_NO_PATHCONV=1`, or the `/Game` argument gets mangled):
