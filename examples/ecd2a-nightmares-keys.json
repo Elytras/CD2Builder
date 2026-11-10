@@ -1,0 +1,327 @@
+{
+  "Enemies": {
+    "ED_Nexus_Turbo": {
+      "HealthMultiplier": 0.75
+    }
+  },
+  "ElytrasAddon": {
+    "Enemies": {
+      "ED_Spider_Exploder_Camo": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        },
+        "HealthBar": false
+      },
+      "ED_Spider_Exploder_Camo_spawn": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        },
+        "HealthBar": false
+      },
+      "ED_Spider_Exploder_Electrical": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        },
+        "HealthBar": false
+      },
+      "ED_Spider_Exploder_Fire": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        },
+        "HealthBar": false
+      },
+      "ED_Spider_Exploder_Ice": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        },
+        "HealthBar": false
+      },
+      "ED_Spider_Exploder_Radioactive_Camo": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        },
+        "HealthBar": false
+      },
+      "ED_Spider_Exploder_Immortal": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        },
+        "HealthBar": false
+      },
+      "ED_CaveLeech_Camo": {
+        "Lights": {
+          "Intensity": 0,
+          "AttenuationRadius": 0
+        },
+        "HealthBar": false
+      },
+      "ED_CaveLeech_Friendly": {
+        "Lights": {
+          "Intensity": 0,
+          "AttenuationRadius": 0
+        },
+        "HealthBar": false
+      },
+      "ED_CaveLeech_Teleporter": {
+        "HealthBar": false
+      },
+      "ED_Spider_ExploderTank_Electrical": {
+        "ArmorHealth": 1000,
+        "Resistances": {
+          "Explosion": 0.0,
+          "Kinetic": 0.0,
+          "Piercing": 0.0,
+          "Physical": 0.0,
+          "InternalDamage": 0.0,
+          "Corrosive": 3.0,
+          "Electric": 12.0,
+          "Poison": 3.0,
+          "Radiation": 8.0,
+          "Fire": 2.0,
+          "Cold": 4.0
+        }
+      },
+      "ED_Spider_ExploderTank_Elemental": {
+        "ArmorHealth": 1000,
+        "Resistances": {
+          "Explosion": 0.0,
+          "Kinetic": 0.0,
+          "Piercing": 0.0,
+          "Physical": 0.0,
+          "InternalDamage": 0.0,
+          "Corrosive": 6.0,
+          "Electric": 6.0,
+          "Poison": 6.0,
+          "Radiation": 16.0,
+          "Fire": 4.0,
+          "Cold": 8.0
+        }
+      },
+      "ED_Spider_ExploderTank_Explosive": {
+        "ArmorHealth": 1000,
+        "Resistances": {
+          "Explosion": 4.0,
+          "Kinetic": 1.5,
+          "Piercing": 0.75,
+          "Physical": 2.0,
+          "InternalDamage": 1.25,
+          "Corrosive": 0.0,
+          "Electric": 0.0,
+          "Poison": 0.0,
+          "Radiation": 0.0,
+          "Fire": 0.0,
+          "Cold": 0.0
+        }
+      },
+      "ED_Spider_ExploderTank_Fire": {
+        "ArmorHealth": 1000,
+        "Resistances": {
+          "Explosion": 0.0,
+          "Kinetic": 0.0,
+          "Piercing": 0.0,
+          "Physical": 0.0,
+          "InternalDamage": 0.0,
+          "Corrosive": 3.0,
+          "Electric": 3.0,
+          "Poison": 3.0,
+          "Radiation": 8.0,
+          "Fire": 8.0,
+          "Cold": 4.0
+        }
+      },
+      "ED_Spider_ExploderTank_Goo": {
+        "ArmorHealth": 1000,
+        "Resistances": {
+          "Explosion": 0.0,
+          "Kinetic": 0.0,
+          "Piercing": 0.0,
+          "Physical": 0.0,
+          "InternalDamage": 0.0,
+          "Corrosive": 12.0,
+          "Electric": 3.0,
+          "Poison": 12.0,
+          "Radiation": 32.0,
+          "Fire": 2.0,
+          "Cold": 4.0
+        }
+      },
+      "ED_Spider_ExploderTank_Ice": {
+        "ArmorHealth": 1000,
+        "Resistances": {
+          "Explosion": 0.0,
+          "Kinetic": 0.0,
+          "Piercing": 0.0,
+          "Physical": 0.0,
+          "InternalDamage": 0.0,
+          "Corrosive": 3.0,
+          "Electric": 3.0,
+          "Poison": 3.0,
+          "Radiation": 8.0,
+          "Fire": 2.0,
+          "Cold": 16.0
+        }
+      },
+      "ED_Spider_ExploderTank_Leadburster": {
+        "ArmorHealth": 1000,
+        "Resistances": {
+          "Explosion": 1.0,
+          "Kinetic": 1.5,
+          "Piercing": 3.0,
+          "Physical": 2.0,
+          "InternalDamage": 1.25,
+          "Corrosive": 0.0,
+          "Electric": 0.0,
+          "Poison": 0.0,
+          "Radiation": 0.0,
+          "Fire": 0.0,
+          "Cold": 0.0
+        }
+      },
+      "ED_Spider_ExploderTank_Kinetic": {
+        "ArmorHealth": 1000,
+        "Resistances": {
+          "Explosion": 2.0,
+          "Kinetic": 3.0,
+          "Piercing": 1.5,
+          "Physical": 4.0,
+          "InternalDamage": 2.5,
+          "Corrosive": 0.0,
+          "Electric": 0.0,
+          "Poison": 0.0,
+          "Radiation": 0.0,
+          "Fire": 0.0,
+          "Cold": 0.0
+        }
+      },
+      "ED_Spider_ExploderTank_Dystrum": {
+        "ArmorHealth": 1000,
+        "Carver": {
+          "Diameter": 600
+        }
+      },
+      "ED_Spider_ExploderTank_RandomReplace": {
+        "ArmorHealth": 1000,
+        "Carver": {
+          "Diameter": 600
+        },
+        "Scale": {
+          "X": 0.25,
+          "Y": 0.25,
+          "Z": 0.25
+        },
+        "MaxHealth": 200,
+        "HealthBar": false
+      },
+      "ED_Spider_Bulkonator": {
+        "ArmorHealth": 1000,
+        "Material": {
+          "0": [
+            "M_DisconatorBody"
+          ],
+          "1": [
+            "M_DisconatorArmor"
+          ],
+          "2": [
+            "M_BulkElemental_fire"
+          ],
+          "3": [
+            "M_BulkElemental_electric"
+          ],
+          "4": [
+            "M_BulkElemental_Ice"
+          ]
+        },
+        "Projectile": [
+          "/Game/NewEnemies/ElytrasEnemiesExpansion/bulks/PRJ_RandonatorSpawn.PRJ_RandonatorSpawn_C"
+        ],
+        "Spawner": {
+          "Projectile": {
+            "Enemy": "ED_Spider_ExploderTank_RandomReplace",
+            "Count": 1
+          }
+        }
+      },
+      "ED_Gregomber": {
+        "ArmorHealth": 1000
+      },
+      "ED_Spider_ShieldTank_Electric": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        },
+        "Resistances": {
+          "Explosion": 0.0,
+          "Kinetic": 0.0,
+          "Piercing": 0.0,
+          "Physical": 10.0,
+          "InternalDamage": 0.0,
+          "Corrosive": 0.0,
+          "Electric": 0.0,
+          "Poison": 0.0,
+          "Radiation": 0.0,
+          "Fire": 0.0,
+          "Cold": 0.0,
+          "Damage": 1.0
+        },
+        "Material": {
+          "0": [
+            "M_Vanity_Headwear_TheAbyssGlass_S03"
+          ],
+          "1": [
+            "M_Vanity_Headwear_TheAbyssGlass_S03"
+          ],
+          "2": [
+            "M_Vanity_Headwear_TheAbyssGlass_S03"
+          ]
+        }
+      },
+      "ED_Spider_ShieldTank_Fire": {
+        "Scale": {
+          "X": 1.5,
+          "Y": 1.5,
+          "Z": 1.5
+        },
+        "Resistances": {
+          "Explosion": 0.89,
+          "Kinetic": 1.9,
+          "Piercing": 1.9,
+          "Physical": 2.25,
+          "InternalDamage": 0.86,
+          "Corrosive": 0.83,
+          "Electric": 0.88,
+          "Poison": 0.83,
+          "Radiation": 0.83,
+          "Fire": 0.83,
+          "Cold": 2.5
+        },
+        "Movement": {
+          "AlignDirectionSpeed": 1.65,
+          "MaxAcceleration": 2500,
+          "MaxBrakingDeceleration": 1000
+        }
+      },
+      "ED_Spider_ShieldTank_Ice": {
+        "Scale": {
+          "X": 0.75,
+          "Y": 0.75,
+          "Z": 0.75
+        }
+      }
+    }
+  }
+}

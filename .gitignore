@@ -1,10 +1,6 @@
-*.py
-*.json
-*.code*
-__*__
-.*
-
-!cd2_schema.py
-!nightmares.py
-!nightmares.json
-!.gitignore
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+out/
+out.json

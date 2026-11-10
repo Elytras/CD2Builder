@@ -1,0 +1,15 @@
+{
+  "Name": "drgq Test",
+  "Description": "Calm drgq test difficulty: Hazard 5 numbers, but no encounters, stationaries or waves. Jobs spawn what they test.",
+  "DifficultySetting": {
+    "BaseHazard": "Hazard 5",
+    "EncounterDifficulty": [{ "weight": 1, "min": 0, "max": 0 }],
+    "StationaryDifficulty": [{ "weight": 1, "min": 0, "max": 0 }],
+    "EnemyWaveInterval": [{ "weight": 1, "min": 100000, "max": 100000 }],
+    "EnemyNormalWaveInterval": [{ "weight": 1, "min": 100000, "max": 100000 }],
+    "EnemyNormalWaveDifficulty": [{ "weight": 1, "min": 0, "max": 0 }]
+  },
+  "Pools": {
+    "StationaryEnemyCount": { "Min": 0, "Max": 0 }
+  }
+}

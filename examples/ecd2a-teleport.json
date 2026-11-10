@@ -1,0 +1,225 @@
+{
+ "DifficultySetting": {
+  "EnemyDamageResistance": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "SmallEnemyDamageResistance": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "ExtraLargeEnemyDamageResistance": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "ExtraLargeEnemyDamageResistanceB": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "EnemyNormalWaveInterval": [
+   {
+    "weight": 1,
+    "min": 30,
+    "max": 30
+   }
+  ],
+  "EnemyNormalWaveDifficulty": [
+   {
+    "weight": 1,
+    "min": 350,
+    "max": 450
+   }
+  ]
+ },
+ "ElytrasAddon": {
+  "Enemies": {
+   "ED_Maggot": {
+    "MaxHealth": 100000,
+    "Teleporter": [
+     {
+      "DamageCondition": "Ranged",
+      "ProjectileCondition": "CollisionOnly",
+      "TargetPool": "Self",
+      "Transform": {
+       "Translation": {
+        "Z": 200
+       }
+      }
+     },
+     {
+      "DamageThreshold": 150,
+      "TargetPool": "Self",
+      "Transform": {
+       "Translation": {
+        "Z": 300
+       }
+      }
+     },
+     {
+      "DamageThreshold": 140,
+      "Type": "Swapper",
+      "TargetPool": "Damaged",
+      "DestinationPool": "Self"
+     },
+     {
+      "DamageThreshold": 130,
+      "Type": "Puller",
+      "TargetPool": "Damaged",
+      "DestinationPool": "Self"
+     },
+     {
+      "DamageThreshold": 120,
+      "Type": {
+       "Mutate": "IfFloat",
+       "Value": 1,
+       "<": 2,
+       "Then": "Swapper",
+       "Else": "Puller"
+      },
+      "TargetPool": "Damaged"
+     },
+     {
+      "DamageThreshold": 110,
+      "TargetPool": "Damaged + Self",
+      "LivenessCondition": "Dead",
+      "Timing": {
+       "DelayBeforeDecision": 0.5
+      },
+      "Transform": {
+       "Translation": {
+        "Z": 300
+       }
+      }
+     },
+     {
+      "DamageThreshold": 100,
+      "TargetPool": "Damaged + Self",
+      "LivenessCondition": "Alive",
+      "Timing": {
+       "DelayBeforeDecision": 0.5
+      },
+      "Transform": {
+       "Translation": {
+        "Z": 300
+       }
+      }
+     },
+     {
+      "DamageThreshold": 90,
+      "TargetPool": "Damaged",
+      "Timing": {
+       "DelayBeforeTeleport": 0.5
+      },
+      "CancelCondition": {
+       "OnTargetDeath": true
+      },
+      "Transform": {
+       "Translation": {
+        "Z": 300
+       }
+      }
+     },
+     {
+      "DamageThreshold": 80,
+      "TargetPool": "Damaged",
+      "Timing": {
+       "DelayBeforeTeleport": 3
+      },
+      "CancelCondition": {
+       "OnTargetDamage": true
+      },
+      "Transform": {
+       "Translation": {
+        "Z": 300
+       }
+      }
+     },
+     {
+      "DamageThreshold": 70,
+      "TargetPool": "Self",
+      "Timing": {
+       "DelayBeforeTeleport": 1
+      },
+      "CancelCondition": {
+       "OnAttackerDeath": true
+      }
+     },
+     {
+      "DamageThreshold": 60,
+      "TargetPool": "Self",
+      "Timing": {
+       "DelayBeforeTeleport": 3
+      },
+      "CancelCondition": {
+       "OnAttackerDamage": true,
+       "AttackerDamageThreshold": 5
+      }
+     },
+     {
+      "DamageThreshold": 50,
+      "TargetPool": "Self",
+      "Timing": {
+       "DelayBeforeTeleport": 3
+      },
+      "CancelCondition": {
+       "OnAttackerStun": true
+      }
+     },
+     {
+      "DamageThreshold": 40,
+      "TargetPool": "Self",
+      "Timing": {
+       "DelayBeforeTeleport": 3
+      },
+      "CancelCondition": {
+       "OnAttackerFreeze": true
+      }
+     },
+     {
+      "DamageThreshold": 30,
+      "TargetPool": "Self",
+      "Timing": {
+       "DelayBeforeTeleport": 3
+      },
+      "CancelCondition": {
+       "TimeThreshold": 1
+      }
+     }
+    ]
+   },
+   "ED_Spider_Grunt": {
+    "Teleporter": {
+     "TargetPool": "Self",
+     "Transform": {
+      "Translation": {
+       "Z": 300
+      }
+     }
+    }
+   },
+   "ED_Spider_Tank": {
+    "Teleporter": {
+     "TargetPool": {
+      "Mutate": "IfFloat",
+      "Value": {
+       "Mutate": "ByTime",
+       "InitialValue": 0,
+       "RateOfChange": 1
+      },
+      "<": 70,
+      "Then": "Target + Self",
+      "Else": "Target & AllTargets"
+     }
+    }
+   }
+  }
+ }
+}
