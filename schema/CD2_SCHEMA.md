@@ -71,6 +71,8 @@ These are found in the decompiled code and not tested in game. The validator tur
 
 - **No error, no effect:**
   - JSON `null` as a value gives no value and no error.
+  - Raw line breaks and other control characters inside a string are accepted: CD2's JSON parser does not check
+    for them (the user confirmed this, 2026-11-10). `cd2b.py` and `decompile.py` read leniently to match.
   - Unknown keys are ignored in `Dwarves`, the top level of `EWC2`, and inside a `randinterval` range.
   - `Resupply` accepts `HealAmount`, `Callable`, `Damage`, `KillRadius` and `Uses`, and uses none of them.
   - `Escort` ignores its value.
