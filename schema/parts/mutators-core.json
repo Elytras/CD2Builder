@@ -1,0 +1,634 @@
+{
+  "values": {
+    "_common": {
+      "notes": "All Make*Value funcs switch on the JSON type (String=0, Number=1, Object=2, Array=3, Boolean=4, Null=5). Every error string gets ' [@<json path>]' appended. A Null value (JSON null) in float/bool/string/stringlist returns NO value and NO error (silent; the module gets a null value). Literal kinds go through MakeMutator: string->StringLiteral, number->FloatLiteral, bool->BooleanLiteral, object->'Mutate'/'Var', array->FlatteningStringList (stringlist base only; any other base -> 'Invalid Value/Mutate'). A literal of the wrong class -> 'Mutate Type Error Expected \"{base}\" Found \"{class}\"' (class display names, e.g. CD2_Float_Mutator / StringLiteral). Implicit per-player arrays exist ONLY at the value level (MakeFloatValue/MakeBooleanValue/MakeStringValue/MakeFloatArrayValue); a float param nested inside a mutator goes through MakeMutator, where an array is 'Invalid Value/Mutate'. String comparisons on keys render as ==/!= in the decompile = KismetStringLibrary StriStri (case-insensitive) and maps/sets are TMap<FString>/TSet<FString> (case-insensitive), so 'Mutate' names and param keys are case-insensitive [inferred from UE FString semantics].",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:1794"
+    },
+    "mutate_object": {
+      "accepts": ["{\"Mutate\": \"<MutatorName>\", ...params}"],
+      "notes": "GetMutatorClass: 'Mutate' is checked first (wins over 'Var'). Mutate value not a string -> 'Mutate value must be a String name.'; unknown name -> 'Unrecognized Mutate {name}.'; object with neither Mutate nor Var -> \"Expected Mutator Object, but no 'Mutate' field found.\". Names come from the asset registry: every CD2_Mutator subclass asset under /Game/_AssemblyStorm/CustomDifficulty2/Mutators (recursive), keyed by asset name. If the class is a CD2_Select_Mutator child it goes through MakeSelectorMutator (polymorphic); otherwise it must be a child of the base type the context wants, except a String mutator is accepted where a StringList is wanted (wrapped as a 1-element list by CD2_StringList_StringWrapper). Key 'Mutate' itself is skipped by every ConfigureMutator.",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:92"
+    },
+    "var": {
+      "accepts": ["{\"Var\": \"<variable name>\"}"],
+      "notes": "Object without 'Mutate' but with 'Var' -> CD2_{Float,Boolean,String,StringList}_Variable_Mutator picked by the context's base type (other base -> 'Unsupported Variable Type.'). Only the key 'Var' is allowed (' No parameters are supported'); Var must be a string ('Var must be String'); empty -> '!! VAR MISSING !!'. Reads the CD2_VariableMonitor; a missing variable at evaluation logs \"Missing Variable '{v}'\" and yields 0/false/''/[] . StringList var falls back to a String var wrapped as [s]. Becomes ready only once the variable is published (OnVariableReady; name matched case-SENSITIVELY there). Update interval 0.5 s. NOTE: Var is NOT accepted directly by MakeRandIntervalsValue (an object without 'Mutate' is read as a range).",
+      "src": "CustomDifficulty2/Mutators/Variables/CD2_Float_Variable_Mutator.cpp:30"
+    },
+    "float": {
+      "accepts": ["number", "{\"Mutate\":...} (float or Select-family)", "{\"Var\": name}", "array -> implicit per-player-count (CD2_Implicit_Player_Count), each element a float value/mutator"],
+      "notes": "Verified FORMAT.md. string/bool -> 'Mutate Type Error Expected \"CD2_Float_Mutator\" Found \"StringLiteral\"' etc. null -> silent no value. BUG: errors from the implicit per-player array branch are collected into a local list and dropped, then the func returns with no Value and no Errors (a bad element in a top-level float array fails silently).",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:418"
+    },
+    "per_player_array": {
+      "accepts": ["[v1, v2, ...]"],
+      "notes": "CD2_Implicit_Player_Count (and ByPlayerCount): picks element index = playerCount-1, clamped to [0, len-1] (last element repeats for more players). playerCount = number of player characters if there is at least one AND mission time > 30 s, else the length of the network-sorted player-state array. Re-evaluated at least every 2 s. Elements go through MakeMutator with the context's base type (so a nested array inside is NOT per-player again). Waits for the PLS before ready. Element errors are reported (for bool/string/floatarray contexts).",
+      "src": "CustomDifficulty2/Mutators/CD2_Implicit_Player_Count.cpp:6"
+    },
+    "bool": {
+      "accepts": ["true/false", "{\"Mutate\":...} (bool or Select-family)", "{\"Var\": name}", "array -> implicit per-player-count of bool values"],
+      "notes": "string/number -> Mutate Type Error (Expected \"CD2_Boolean_Mutator\"). null -> silent no value. Fallback error text 'Expected Boolean Value Got {class}'.",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:1328"
+    },
+    "string": {
+      "accepts": ["\"text\"", "{\"Mutate\":...} (string or Select-family)", "{\"Var\": name}", "array -> implicit per-player-count of string values"],
+      "notes": "number/bool -> Mutate Type Error (Expected \"CD2_String_Mutator\"). null -> silent no value. Fallback error 'Expected String Value Got {class}'.",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:1630"
+    },
+    "stringlist": {
+      "accepts": ["array of items (FlatteningStringList)", "{\"Mutate\":...} (stringlist, string -> wrapped [s], or Select-family)", "{\"Var\": name}"],
+      "notes": "A bare string at value level -> 'Expected List of Strings, Got String'. number/bool -> Mutate Type Error (Expected \"CD2_StringList_Mutator\"). null -> silent no value. Array items: a JSON string is taken literally; anything else goes through MakeMutator(StringList): a nested array is flattened in, an object is a Mutate/Var (string mutators wrapped as 1 element), number/bool -> type error. NO per-player arrays for stringlist (an array is always a list). Fallback error 'Expected StringList Value Got {class}'.",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:1497"
+    },
+    "floatarray": {
+      "accepts": ["number / string / object -> single-element array [MakeMutator float]", "array with <= 4 elements -> one float value/mutator per element", "array with > 4 elements -> ONE implicit per-player-count float (array of length 1)"],
+      "notes": "Bool or null -> 'Value Must be an Array of Floats or a single float'. An element (or the single value) that is not a float -> same message, or the MakeMutator type error. Unclear intent but literal code: the >4 rule means a 5+ element array is read as per-player, not as a 5-float array.",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:584"
+    },
+    "randinterval": {
+      "accepts": ["number -> fixed value (Min=Max=value, Weight 1)", "{\"Mutate\": ...} float mutator -> same, Min=Max=it", "{\"Min\": float, \"Max\": float, \"Weight\"?: float} (object WITHOUT 'Mutate')", "[ {Min,Max,Weight?}, ... ] list of weighted ranges"],
+      "notes": "Object without 'Mutate' is a range: 'Max' checked first ('Range Must Specify 'Max''), then 'Min' ('Range Must Specify 'Min''); 'Weight' optional, default 1 (FloatLiteral 1.0). Other keys in a range are ignored (no error). Min/Max/Weight each go through MakeMutator(float) so they may be literals, Mutate or Var objects (no per-player arrays). In the array form every element must be an object ('Expected Random Range'), bare numbers are not accepted; an element with 'Mutate' is still read as a range. A {\"Var\":...} object at top level is read as a range (error Max missing). string -> Mutate Type Error; bool/null -> 'Value Must be an RandInterval, Range or Float'.",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:809"
+    },
+    "selector": {
+      "notes": "MakeSelectorMutator: any Mutate whose class is a CD2_Select_Mutator child (Select, SelectFromArray, If, IfFloat, ByPlayerCount, RandomChoice, RandomChoicePerMission, ByBiome, ByMissionType, ByDNA, ByDDStage, BySecondary, ByMissionComplexity, ByMissionDuration, By*Phase, IfOnSpaceRig, and other readers' ByResuppliesCalled, Sequence, EnemyCooldown) is built with OptionsBaseClass = the context's base type, so every option is parsed with MakeMutator(<context type>) and the result is wrapped in CD2_{Float,Boolean,String,StringList}_Selector. So a Select-family mutator returns float, bool, string or stringlist depending on where it is used; all options must be that type. At evaluation the selector calls Select(); if the chosen option is null (no match, no Default) the selector leaves its output unset (0/false/''/[]). Base outside those four -> '!Internal Error! Unsupported Base Class For Selector'. RequiresAuthority/update interval forward to the select mutator.",
+      "src": "CustomDifficulty2/Mutators/CD2_Mutator_Manager.cpp:222"
+    }
+  },
+  "mutators": {
+    "Add": {
+      "returns": "float",
+      "params": {
+        "Values": {"type": "array", "items": {"type": "float"}, "required": false, "notes": "each element appended to the operand list; not an array -> error text is just 'Values [@path]'", "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:21"}
+      },
+      "extra": {"type": "float", "notes": "ANY other key (any name) is one more operand; keys and Values combine. At least one operand: 'At least one Operand required'", "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:23"},
+      "unknown": "ignored",
+      "notes": "Sum of all operands (CD2_Float_Commutative_Operator).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Add.cpp:6"
+    },
+    "Multiply": {
+      "returns": "float",
+      "params": {"Values": {"type": "array", "items": {"type": "float"}, "required": false, "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:21"}},
+      "extra": {"type": "float", "notes": "any other key is an operand (see Add)", "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:23"},
+      "unknown": "ignored",
+      "notes": "Product of all operands.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Multiply.cpp:6"
+    },
+    "Max": {
+      "returns": "float",
+      "params": {"Values": {"type": "array", "items": {"type": "float"}, "required": false, "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:21"}},
+      "extra": {"type": "float", "notes": "any other key is an operand (see Add)", "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:23"},
+      "unknown": "ignored",
+      "notes": "Maximum of all operands.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Max.cpp:6"
+    },
+    "Min": {
+      "returns": "float",
+      "params": {"Values": {"type": "array", "items": {"type": "float"}, "required": false, "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:21"}},
+      "extra": {"type": "float", "notes": "any other key is an operand (see Add)", "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:23"},
+      "unknown": "ignored",
+      "notes": "Minimum of all operands.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Min.cpp:6"
+    },
+    "Subtract": {
+      "returns": "float",
+      "params": {
+        "A": {"type": "float", "required": true, "notes": "'Missing operand \"A\"'", "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:15"},
+        "B": {"type": "float", "required": true, "notes": "'Missing operand \"B\"'", "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:17"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "A - B. Other key -> 'Unexpected field \"{field}\", Use 'A' and 'B''.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Subtract.cpp:6"
+    },
+    "Divide": {
+      "returns": "float",
+      "params": {
+        "A": {"type": "float", "required": true, "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:15"},
+        "B": {"type": "float", "required": true, "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:17"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "SafeDivide(A, B): B == 0 gives 0.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Divide.cpp:6"
+    },
+    "Modulo": {
+      "returns": "float",
+      "params": {
+        "A": {"type": "float", "required": true, "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:15"},
+        "B": {"type": "float", "required": true, "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:17"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Float remainder A % B (Percent_FloatFloat).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Modulo.cpp:6"
+    },
+    "Pow": {
+      "returns": "float",
+      "params": {
+        "A": {"type": "float", "required": true, "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:15"},
+        "B": {"type": "float", "required": true, "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:17"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "A ** B.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Pow.cpp:6"
+    },
+    "Abs": {
+      "returns": "float",
+      "params": {"Value": {"type": "float", "required": false, "default": 0, "notes": "missing Value is not an error; evaluates as 0", "src": "CustomDifficulty2/Mutators/Mutators/Math/Abs.cpp:46"}},
+      "extra": null,
+      "unknown": "error",
+      "notes": "|Value|. Other key -> 'Unexpected field \"{field}\"'.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Abs.cpp:6"
+    },
+    "Ceil": {
+      "returns": "float",
+      "params": {"Value": {"type": "float", "required": false, "default": 0, "src": "CustomDifficulty2/Mutators/Mutators/Math/Ceil.cpp:46"}},
+      "extra": null,
+      "unknown": "error",
+      "notes": "ceil(Value).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Ceil.cpp:6"
+    },
+    "Floor": {
+      "returns": "float",
+      "params": {"Value": {"type": "float", "required": false, "default": 0, "src": "CustomDifficulty2/Mutators/Mutators/Math/Floor.cpp:46"}},
+      "extra": null,
+      "unknown": "error",
+      "notes": "floor(Value).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Floor.cpp:6"
+    },
+    "Round": {
+      "returns": "float",
+      "params": {"Value": {"type": "float", "required": false, "default": 0, "src": "CustomDifficulty2/Mutators/Mutators/Math/Round.cpp:46"}},
+      "extra": null,
+      "unknown": "error",
+      "notes": "round(Value) via UKismetMathLibrary::Round (FMath::RoundToInt = floor(x+0.5)).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Round.cpp:6"
+    },
+    "Clamp": {
+      "returns": "float",
+      "params": {
+        "Value": {"type": "float", "required": false, "default": 0, "src": "CustomDifficulty2/Mutators/Mutators/Math/Clamp.cpp:79"},
+        "Min": {"type": "float", "required": false, "notes": "absent -> no lower bound", "src": "CustomDifficulty2/Mutators/Mutators/Math/Clamp.cpp:75"},
+        "Max": {"type": "float", "required": false, "notes": "absent -> no upper bound", "src": "CustomDifficulty2/Mutators/Mutators/Math/Clamp.cpp:77"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "max(Min, min(Max, Value)): Max applied first, then Min, so Min wins if Min > Max.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Math/Clamp.cpp:225"
+    },
+    "And": {
+      "returns": "bool",
+      "params": {"Values": {"type": "array", "items": {"type": "bool"}, "required": false, "notes": "not an array -> 'Values [@path]'", "src": "CustomDifficulty2/Mutators/Mutators/Logic/And.cpp:21"}},
+      "extra": {"type": "bool", "notes": "any other key is one more operand; 'At least one Operand required'", "src": "CustomDifficulty2/Mutators/Mutators/Logic/And.cpp:23"},
+      "unknown": "ignored",
+      "notes": "Logical AND of all operands (all evaluated, no short-circuit).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Logic/And.cpp:82"
+    },
+    "Or": {
+      "returns": "bool",
+      "params": {"Values": {"type": "array", "items": {"type": "bool"}, "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Logic/Or.cpp:21"}},
+      "extra": {"type": "bool", "notes": "any other key is an operand; 'At least one Operand required'", "src": "CustomDifficulty2/Mutators/Mutators/Logic/Or.cpp:23"},
+      "unknown": "ignored",
+      "notes": "Logical OR of all operands.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Logic/Or.cpp:82"
+    },
+    "Not": {
+      "returns": "bool",
+      "params": {"Value": {"type": "bool", "required": true, "notes": "'The field Value is required.'", "src": "CustomDifficulty2/Mutators/Mutators/Logic/Not.cpp:13"}},
+      "extra": null,
+      "unknown": "error",
+      "notes": "!Value. Other key -> 'Only the field Value is expected.'",
+      "src": "CustomDifficulty2/Mutators/Mutators/Logic/Not.cpp:6"
+    },
+    "NonZero": {
+      "returns": "bool",
+      "params": {"Value": {"type": "float", "required": true, "notes": "'The field Value is required.'", "src": "CustomDifficulty2/Mutators/Mutators/Logic/NonZero.cpp:13"}},
+      "extra": null,
+      "unknown": "error",
+      "notes": "Value != 0. Other key -> 'Only the field Value is expected.'",
+      "src": "CustomDifficulty2/Mutators/Mutators/Logic/NonZero.cpp:6"
+    },
+    "Float2String": {
+      "returns": "string",
+      "params": {"Value": {"type": "float", "required": true, "notes": "'The field Value is required.'", "src": "CustomDifficulty2/Mutators/Mutators/String/Float2String.cpp:13"}},
+      "extra": null,
+      "unknown": "error",
+      "notes": "Number formatted as text: grouping on, 0..3 fractional digits, HalfToEven (decompile shows AsCurrency_Float with those args; likely Conv_FloatToText) [inferred].",
+      "src": "CustomDifficulty2/Mutators/Mutators/String/Float2String.cpp:51"
+    },
+    "Int2String": {
+      "returns": "string",
+      "params": {"Value": {"type": "float", "required": true, "src": "CustomDifficulty2/Mutators/Mutators/String/Int2String.cpp:13"}},
+      "extra": null,
+      "unknown": "error",
+      "notes": "Truncates toward zero then int-to-string.",
+      "src": "CustomDifficulty2/Mutators/Mutators/String/Int2String.cpp:51"
+    },
+    "Join": {
+      "returns": "string",
+      "params": {
+        "Values": {"type": "stringlist", "required": true, "notes": "'The field Values is required.' Parsed with MakeMutator(StringList): array, stringlist mutator, or a string (wrapped)", "src": "CustomDifficulty2/Mutators/Mutators/String/Join.cpp:14"},
+        "Sep": {"type": "string", "required": false, "default": " ", "src": "CustomDifficulty2/Mutators/Mutators/String/Join.cpp:16"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Joins the list with Sep. Other key -> 'Only the fields Values and Sep are expected.'",
+      "src": "CustomDifficulty2/Mutators/Mutators/String/Join.cpp:59"
+    },
+    "LockFloat": {
+      "returns": "float",
+      "params": {
+        "Value": {"type": "float", "required": true, "notes": "'Input \"Value\" must be set'", "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockFloat.cpp:15"},
+        "Lock": {"type": "bool", "required": false, "notes": "exactly one of Lock / Update: '\"Lock\" or \"Update\" but not both must be set'. While Lock is true the output holds", "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockFloat.cpp:11"},
+        "Update": {"type": "bool", "required": false, "notes": "output takes Value only on evaluations where Update is true", "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockFloat.cpp:13"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Sample-and-hold: first evaluation always samples. Other key -> 'Unexpected field \"{field}\"'.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockFloat.cpp:75"
+    },
+    "LockBoolean": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "bool", "required": true, "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockBoolean.cpp:6"},
+        "Lock": {"type": "bool", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockBoolean.cpp:6"},
+        "Update": {"type": "bool", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockBoolean.cpp:6"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Same as LockFloat with a bool Value (exactly one of Lock/Update).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockBoolean.cpp:6"
+    },
+    "LockString": {
+      "returns": "string",
+      "params": {
+        "Value": {"type": "string", "required": true, "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockString.cpp:6"},
+        "Lock": {"type": "bool", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockString.cpp:6"},
+        "Update": {"type": "bool", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockString.cpp:6"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Same as LockFloat with a string Value.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Lock/LockString.cpp:6"
+    },
+    "TriggerOnce": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "bool", "required": true, "notes": "the input. Conventionally 'Value', but ANY key name not reserved is accepted as the input (first such key); a second one -> 'Unexpected field'. Missing -> 'Input Value must be set'", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:11"},
+        "Reset": {"type": "bool", "required": false, "notes": "while true, the count resets", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:11"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Passes the input through only during its first true period (count of rising edges <= 1).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:54"
+    },
+    "TriggerNTimes": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "bool", "required": true, "notes": "input; any non-reserved key (see TriggerOnce)", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:16"},
+        "N": {"type": "float", "required": true, "notes": "'N must be set'; truncated to int", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:14"},
+        "Reset": {"type": "bool", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:12"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Input passes through for its first N true periods.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:76"
+    },
+    "TriggerCooldown": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "bool", "required": true, "notes": "input; any non-reserved key", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:13"},
+        "N": {"type": "float", "required": true, "notes": "cooldown seconds; '\"N\" seconds must be set.'", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:11"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Output = input && !cooldown; a falling edge of the input starts an N-second cooldown. Requires authority (server).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:68"
+    },
+    "TriggerDelay": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "bool", "required": true, "notes": "input; any non-reserved key", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:13"},
+        "N": {"type": "float", "required": true, "notes": "delay seconds", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:11"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Replays the input's rising/falling edges N seconds later. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:68"
+    },
+    "TriggerFixedDuration": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "bool", "required": true, "notes": "input; any non-reserved key", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:16"},
+        "N": {"type": "float", "required": true, "notes": "duration seconds", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:12"},
+        "Reset": {"type": "bool", "required": false, "default": false, "notes": "when true, a new rising edge while triggered restarts the N-second window", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:14"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "A rising edge of the input outputs true for exactly N seconds. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:76"
+    },
+    "TriggerSustain": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "bool", "required": true, "notes": "input; any non-reserved key", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:13"},
+        "N": {"type": "float", "required": true, "notes": "hold seconds", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:11"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Output = input, and stays true N seconds after the input falls. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:68"
+    },
+    "TriggerSometimes": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "bool", "required": true, "notes": "input; any non-reserved key", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:13"},
+        "P": {"type": "float", "required": true, "notes": "probability, clamped 0..1; 'Probability \"P\" must be set.'", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:11"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "On each rising edge rolls once; if it hits, passes the input through for that true period. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:68"
+    },
+    "TriggerOnChange": {
+      "returns": "bool",
+      "params": {
+        "Value": {"type": "float", "required": true, "notes": "FLOAT input; any non-reserved key; 'Input Value must be set'", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:16"},
+        "RiseOnly": {"type": "bool", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:12"},
+        "FallOnly": {"type": "bool", "required": false, "notes": "'RiseOnly and FallOnly are incompatible' when both keys are given", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:14"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "True on an evaluation where the float differs from the previous one (direction filtered by RiseOnly/FallOnly).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:78"
+    },
+    "TriggerTimer": {
+      "returns": "bool",
+      "params": {
+        "N": {"type": "float", "required": true, "notes": "period seconds; '\"N\" seconds must be set.'", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerTimer.cpp:12"},
+        "Loop": {"type": "bool", "required": false, "default": true, "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerTimer.cpp:14"},
+        "Reset": {"type": "bool", "required": false, "notes": "true holds the timer at N and outputs false", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerTimer.cpp:16"},
+        "Enable": {"type": "bool", "required": false, "notes": "inverse of Reset; \"'Enable' and 'Reset' are mutually exclusive\"", "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerTimer.cpp:18"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "No input. With Loop: true for one evaluation each time N seconds elapse. Without Loop: TimeRemaining is pinned at 0 after the first expiry, so it stays true until Reset (or Enable false). First evaluation only arms the timer. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerTimer.cpp:82"
+    },
+    "Random": {
+      "returns": "float",
+      "params": {
+        "Min": {"type": "float", "required": false, "default": 0, "src": "CustomDifficulty2/Mutators/Mutators/Random.cpp:72"},
+        "Max": {"type": "float", "required": false, "default": 1, "src": "CustomDifficulty2/Mutators/Mutators/Random.cpp:74"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "New uniform roll in [Min, Max] on every evaluation (update interval <= 0.5 s). Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Random.cpp:182"
+    },
+    "RandomPerMission": {
+      "returns": "float",
+      "params": {
+        "Min": {"type": "float", "required": false, "default": 0, "src": "CustomDifficulty2/Mutators/Mutators/RandomPerMission.cpp:72"},
+        "Max": {"type": "float", "required": false, "default": 1, "src": "CustomDifficulty2/Mutators/Mutators/RandomPerMission.cpp:74"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Deterministic per mission and per JSON location: stream seed = PLS seed XOR djb2(JSON path), mapped to [Min, Max]. Waits for the PLS.",
+      "src": "CustomDifficulty2/Mutators/Mutators/RandomPerMission.cpp:182"
+    },
+    "Select": {
+      "returns": "any(select)",
+      "params": {
+        "Select": {"type": "string", "required": true, "notes": "'\"Select\" field must be set.' Its evaluated string is looked up among the option keys (TMap<FString>, case-insensitive)", "src": "CustomDifficulty2/Mutators/Mutators/Select.cpp:11"},
+        "Default": {"type": "any(select)", "required": false, "notes": "used when no key matches; absent -> output 0/false/''", "src": "CustomDifficulty2/Mutators/Mutators/Select.cpp:13"}
+      },
+      "extra": {"type": "any(select)", "notes": "every other key is an option named by the key", "src": "CustomDifficulty2/Mutators/Mutators/Select.cpp:15"},
+      "unknown": "ignored",
+      "notes": "Switch on a string. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Select.cpp:59"
+    },
+    "SelectFromArray": {
+      "returns": "any(select)",
+      "params": {
+        "Select": {"type": "float", "required": true, "notes": "index, rounded; '\"Select\" field must be set.'", "src": "CustomDifficulty2/Mutators/Mutators/SelectFromArray.cpp:20"},
+        "Array": {"type": "array", "items": {"type": "any(select)"}, "required": true, "notes": "'\"Array\" field must be set and non-empty.'; not an array -> 'Must Be An Array'", "src": "CustomDifficulty2/Mutators/Mutators/SelectFromArray.cpp:22"},
+        "Default": {"type": "any(select)", "required": false, "notes": "used when the rounded index is out of range; without it the index is clamped", "src": "CustomDifficulty2/Mutators/Mutators/SelectFromArray.cpp:24"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "0-based index into Array.",
+      "src": "CustomDifficulty2/Mutators/Mutators/SelectFromArray.cpp:103"
+    },
+    "If": {
+      "returns": "any(select)",
+      "params": {
+        "Condition": {"type": "bool", "required": true, "notes": "'A Condition Must Be Set'", "src": "CustomDifficulty2/Mutators/Mutators/If.cpp:77"},
+        "Then": {"type": "any(select)", "required": true, "notes": "'Then Must Be Set'", "src": "CustomDifficulty2/Mutators/Mutators/If.cpp:79"},
+        "Else": {"type": "any(select)", "required": true, "notes": "'Else Must Be Set'", "src": "CustomDifficulty2/Mutators/Mutators/If.cpp:81"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Condition ? Then : Else.",
+      "src": "CustomDifficulty2/Mutators/Mutators/If.cpp:222"
+    },
+    "IfFloat": {
+      "returns": "any(select)",
+      "params": {
+        "Value": {"type": "float", "required": false, "notes": "not checked at load; if absent Select picks Else", "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:87"},
+        "==": {"type": "float", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:89"},
+        ">=": {"type": "float", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:91"},
+        ">": {"type": "float", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:93"},
+        "<=": {"type": "float", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:95"},
+        "<": {"type": "float", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:97"},
+        "Then": {"type": "any(select)", "required": false, "notes": "not checked at load; absent -> output 0/false/'' when chosen", "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:99"},
+        "Else": {"type": "any(select)", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:101"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Exactly one comparison key: 'A Comparison Operator Must Be Set' / 'Only One Comparison Operator Allowed'. Value <op> operand ? Then : Else.",
+      "src": "CustomDifficulty2/Mutators/Mutators/IfFloat.cpp:286"
+    },
+    "ByPlayerCount": {
+      "returns": "any(select)",
+      "params": {
+        "Values": {"type": "array", "items": {"type": "any(select)"}, "required": false, "notes": "per-player list, index = players-1 clamped (see values.per_player_array); not array -> \"Field 'Values' must be an array\"", "src": "CustomDifficulty2/Mutators/Mutators/ByPlayerCount.cpp:50"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Explicit form of the implicit per-player array. BUG/unclear: ConfigureMutator ends with Errors = {} so its own errors (unexpected field, non-array Values, bad elements) appear to be DROPPED; missing Values is not checked (empty options -> invalid pick). Waits for the PLS.",
+      "src": "CustomDifficulty2/Mutators/Mutators/ByPlayerCount.cpp:6"
+    },
+    "RandomChoice": {
+      "returns": "any(select)",
+      "params": {
+        "Choices": {"type": "array", "items": {"type": "any(select)"}, "required": false, "notes": "not checked for presence/emptiness; not an array -> 'Must Be An Array'", "src": "CustomDifficulty2/Mutators/Mutators/RandomChoice.cpp:28"},
+        "Weights": {"type": "array", "items": {"type": "float"}, "required": false, "notes": "if given, count must equal Choices: 'Number of Choices and Weights Must Match'; negative weights count as 0", "src": "CustomDifficulty2/Mutators/Mutators/RandomChoice.cpp:30"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Re-rolls on every evaluation (update interval <= 1 s), uniform or weighted. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/RandomChoice.cpp:119"
+    },
+    "RandomChoicePerMission": {
+      "returns": "any(select)",
+      "params": {
+        "Choices": {"type": "array", "items": {"type": "any(select)"}, "required": false, "src": "CustomDifficulty2/Mutators/Mutators/RandomChoicePerMission.cpp:6"},
+        "Weights": {"type": "array", "items": {"type": "float"}, "required": false, "src": "CustomDifficulty2/Mutators/Mutators/RandomChoicePerMission.cpp:6"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Same as RandomChoice but the stream is seeded with the PLS seed (one pick per mission; it computes a per-path Salt but the Select code seeds with the PLS seed only, so two RandomChoicePerMission with equal choices pick the same index [unclear if Salt is used]). Waits for the PLS; no authority needed.",
+      "src": "CustomDifficulty2/Mutators/Mutators/RandomChoicePerMission.cpp:6"
+    },
+    "ByBiome": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": false, "notes": "required unless >= 9 distinct biomes are set: 'Default Must be set unless all biomes are specified' (then CrystalCaves' option is the fallback)", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByBiome.cpp:45"}
+      },
+      "extra": {"type": "any(select)", "enum": ["AzureWeald", "CrystalCaves", "CrystallineCaverns", "FungusBogs", "HollowBough", "IceCaves", "GlacialStrata", "MagmaCaves", "MagmaCore", "SandblastedCorridors", "Sandblasted", "RadioactiveExclusionZone", "RadioactiveZone", "REZ", "SaltCaves", "SaltPits", "LushDownpour", "Biozone", "DenseBiozone", "Default"], "notes": "option per biome key. Aliases: CrystallineCaverns=CrystalCaves, GlacialStrata=IceCaves, MagmaCore=MagmaCaves, Sandblasted=SandblastedCorridors, RadioactiveExclusionZone/REZ=RadioactiveZone, SaltPits=SaltCaves, Biozone/DenseBiozone=LushDownpour. Unknown key -> \"Unrecognized Biome '{key}'\"", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByBiome.h:7"},
+      "unknown": "error",
+      "notes": "Matches the PLS Biome object name (BIOME_*).",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByBiome.cpp:6"
+    },
+    "ByMissionType": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": false, "notes": "required unless all 9 types are set: \"Either Provide a 'Default' or set all mission types\" (then Mining is the fallback)", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionType.cpp:166"}
+      },
+      "extra": {"type": "any(select)", "enum": ["Egg", "Elimination", "Escort", "Mining", "PE", "Refinery", "Sabotage", "Salvage", "DeepScan"], "notes": "Egg=GM_EggCollection, PE=GM_Motherlode (point extraction), Sabotage=GM_Facility, DeepScan=GM_DeepScan. Other key -> 'Unexpected field \"{field}\"'", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionType.h:7"},
+      "unknown": "error",
+      "notes": "Keyed on the game mode class. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionType.cpp:35"
+    },
+    "BySecondary": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": true, "notes": "\"A 'Default' must be provided\"", "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.cpp:201"},
+        "Dump": {"type": "rawany", "required": false, "notes": "value ignored; logs every Objective class name (error level) to help find keys", "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.cpp:120"}
+      },
+      "extra": {"type": "any(select)", "enum": ["OBJ_1st_DeepScan", "OBJ_WRN_Plague", "OBJ_1st_Facility", "OBJ_1st_Escort", "OBJ_DD_RepairMinimules", "OBJ_Gather_Gems_Base", "OBJ_1st_Gather_AlienEggs", "OBJ_1st_PointExtraction", "OBJ_Elimination_Base", "OBJ_Eliminate_Eggs", "OBJ_FindItems_Base", "OBJ_Extraction_Base", "OBJ_1st_Extraction", "OBJ_1st_Refinery", "OBJ_2nd_Mine_Dystrum", "OBJ_DD_Defense", "OBJ_1st_Salvage", "OBJ_2nd_Mine_Hollomite", "OBJ_2nd_KillFleas", "OBJ_2nd_Find_Gunkseed", "OBJ_2nd_Find_Fossil", "OBJ_2nd_Find_Ebonut", "OBJ_2nd_Find_BooloCap", "OBJ_2nd_Find_ApocaBloom", "OBJ_2nd_DestroyEggs", "OBJ_2nd_DestroyBhaBarnacles", "OBJ_DD_DeepScan", "OBJ_DD_Morkite", "OBJ_DD_Elimination_Eggs", "OBJ_DD_AlienEggs", "OBJ_DD_MorkiteWell", "OBJ_1st_Tutorial"], "notes": "objective class names; the '_C' suffix is optional (both 'X' and 'X_C' accepted). Unknown -> 'Unrecognized Secondary \"{field}\"'. First key (map order) whose objective is among the mission's secondary objectives wins", "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.cpp:284"},
+      "unknown": "error",
+      "notes": "Waits for the PLS. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.cpp:67"
+    },
+    "ByDNA": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": true, "notes": "\"'Default' must be set\"", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDNA.cpp:249"}
+      },
+      "extra": {"type": "any(select)", "notes": "key = 'type[,length[,complexity]]', comma separated, trimmed, case-insensitive. type in egg|elimination|escort|mining|pe|refinery|sabotage|salvage|deepscan|x; length and complexity in 1..3 or x (x = any; omitted parts = x); 4+ parts invalid -> 'Invalid Mission DNA: {dna}'. Lookup order: t,l,c; t,l,x; t,x,c; x,l,c; t,x,x; x,l,x; x,x,c; then Default (x,x,x is never looked up)", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDNA.cpp:66"},
+      "unknown": "error",
+      "notes": "Length/complexity = mission DNA NumberOfDots. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDNA.cpp:10"
+    },
+    "ByMissionComplexity": {
+      "returns": "any(select)",
+      "params": {
+        "Values": {"type": "array", "items": {"type": "any(select)"}, "required": true, "notes": "exactly 3 elements: 'Values must be a list with 3 elements' / 'Values must be a list' / 'The field Values must be set'. Key compared case-SENSITIVELY (EqualEqual_StrStr)", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionComplexity.cpp:38"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Index = complexity dots - 1. Other key -> 'Only the field Values is expected.' Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionComplexity.cpp:6"
+    },
+    "ByMissionDuration": {
+      "returns": "any(select)",
+      "params": {
+        "Values": {"type": "array", "items": {"type": "any(select)"}, "required": true, "notes": "exactly 3 elements (case-sensitive key)", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionDuration.cpp:15"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Index = duration (length) dots - 1. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionDuration.cpp:6"
+    },
+    "ByDDStage": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": true, "notes": "\"'Default' Value must be set\"; used outside deep dives and for unset stages", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:129"},
+        "Stage1": {"type": "any(select)", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:131"},
+        "Stage2": {"type": "any(select)", "required": false, "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:133"},
+        "Stage3": {"type": "any(select)", "required": false, "notes": "BUG: parsed but never used: on stage 3 Select returns Stage2 (or Default)", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:37"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Deep dive (normal or elite) stage by CurrentMissionIndex. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:6"
+    },
+    "ByEscortPhase": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": true, "notes": "'The Default value must be set.'", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByEscortPhase.cpp:47"}
+      },
+      "extra": {"type": "any(select)", "enum": ["InGarage", "Stationary", "Moving", "WaitingForFuel", "FinalEventA", "FinalEventB", "FinalEventC", "FinalEventD", "Finished"], "notes": "CD2_EEscort_State user-friendly names [names from the decompiled enum; display names assumed equal]. Unknown -> 'Unrecognized Escort State {es}'", "src": "CustomDifficulty2/Monitors/Mission/CD2_EEscort_State.h:5"},
+      "unknown": "error",
+      "notes": "State from CD2_Escort_Monitor; no valid state -> Default. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByEscortPhase.cpp:11"
+    },
+    "ByRefineryPhase": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": true, "notes": "fallback key (checked before the enum value of the same name)", "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByRefineryPhase.cpp:6"}
+      },
+      "extra": {"type": "any(select)", "enum": ["Landing", "ConnectingPipes", "PipesConnected", "Refining", "RefiningStalled", "RefiningComplete", "RocketLaunched"], "notes": "CD2_ERefinery_State names; unknown -> 'Unrecognized Refinery State {es}'", "src": "CustomDifficulty2/Monitors/Mission/CD2_ERefinery_State.h:5"},
+      "unknown": "error",
+      "notes": "Same code as ByEscortPhase over CD2_Refinery_Monitor.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByRefineryPhase.cpp:6"
+    },
+    "BySaboPhase": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": true, "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySaboPhase.cpp:6"}
+      },
+      "extra": {"type": "any(select)", "enum": ["Hacking", "BetweenHacks", "HackingFinished", "Phase1Vent", "Phase1Eye", "Phase2Vent", "Phase2Eye", "Phase3Vent", "Phase3Eye", "Finished"], "notes": "CD2_ESabo_State names; unknown -> 'Unrecognized Sabo State {es}'", "src": "CustomDifficulty2/Monitors/Mission/CD2_ESabo_State.h:5"},
+      "unknown": "error",
+      "notes": "Same code as ByEscortPhase over CD2_Sabo_Monitor.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySaboPhase.cpp:6"
+    },
+    "BySalvagePhase": {
+      "returns": "any(select)",
+      "params": {
+        "Default": {"type": "any(select)", "required": true, "notes": "'The Default value must be set.'", "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySalvagePhase.cpp:106"}
+      },
+      "extra": {"type": "any(select)", "enum": ["Mules", "PreUplink", "Uplink", "PreRefuel", "Refuel", "Finished"], "notes": "Mules: mules not all repaired; Uplink/Refuel: that drop-pod event actor exists with Progress < 1; else by PointsRepaired 0=PreUplink, 1=PreRefuel, other=Finished. Unset state -> Default; unknown key -> 'Unrecognized Salvage State {es}'", "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySalvagePhase.cpp:6"},
+      "unknown": "error",
+      "notes": "Primary objective must be OBJ_1st_Salvage, else Default. Requires authority.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySalvagePhase.cpp:69"
+    },
+    "IfOnSpaceRig": {
+      "returns": "any(select)",
+      "params": {
+        "Then": {"type": "any(select)", "required": true, "notes": "'Then Must Be Set'", "src": "CustomDifficulty2/Mutators/Mutators/Mission/IfOnSpaceRig.cpp:58"},
+        "Else": {"type": "any(select)", "required": true, "notes": "'Else Must Be Set'", "src": "CustomDifficulty2/Mutators/Mutators/Mission/IfOnSpaceRig.cpp:60"}
+      },
+      "extra": null,
+      "unknown": "error",
+      "notes": "Then on the space rig, Else in a mission.",
+      "src": "CustomDifficulty2/Mutators/Mutators/Mission/IfOnSpaceRig.cpp:155"
+    }
+  },
+  "abstract": [
+    {"name": "CD2_Float_Mutator", "notes": "base type; registered as a Mutate name but base Validate fails -> 'Unspecified Mutator Error'", "src": "CustomDifficulty2/CD2_Mutator.cpp:252"},
+    {"name": "CD2_Boolean_Mutator", "notes": "base type", "src": "CustomDifficulty2/Mutators/CD2_Boolean_Mutator.cpp:1"},
+    {"name": "CD2_String_Mutator", "notes": "base type", "src": "CustomDifficulty2/Mutators/CD2_String_Mutator.cpp:1"},
+    {"name": "CD2_StringList_Mutator", "notes": "base type", "src": "CustomDifficulty2/Mutators/CD2_StringList_Mutator.cpp:1"},
+    {"name": "CD2_Select_Mutator", "notes": "base of the Select family (Select() returns the chosen option)", "src": "CustomDifficulty2/Mutators/CD2_Select_Mutator.h:5"},
+    {"name": "CD2_Float_Binary_Operator", "notes": "base of Subtract/Divide/Modulo/Pow: keys A and B only, both required", "src": "CustomDifficulty2/Mutators/CD2_Float_Binary_Operator.cpp:6"},
+    {"name": "CD2_Float_Commutative_Operator", "notes": "base of Add/Multiply/Min/Max: 'Values' array plus any other key as operand", "src": "CustomDifficulty2/Mutators/CD2_Float_Commutative_Operator.cpp:6"},
+    {"name": "CD2_Implicit_Player_Count", "notes": "built by the value factory for per-player arrays; via Mutate it errors ('!Internal Error! Implicit Player Count')", "src": "CustomDifficulty2/Mutators/CD2_Implicit_Player_Count.cpp:6"},
+    {"name": "CD2_StringList_StringWrapper", "notes": "internal: wraps a string mutator as a 1-element list", "src": "CustomDifficulty2/Mutators/CD2_StringList_StringWrapper.cpp:15"},
+    {"name": "CD2_Float_Selector", "notes": "internal selector wrapper", "src": "CustomDifficulty2/Mutators/Select/CD2_Float_Selector.cpp:20"},
+    {"name": "CD2_Boolean_Selector", "notes": "internal selector wrapper", "src": "CustomDifficulty2/Mutators/Select/CD2_Boolean_Selector.cpp:20"},
+    {"name": "CD2_String_Selector", "notes": "internal selector wrapper", "src": "CustomDifficulty2/Mutators/Select/CD2_String_Selector.cpp:20"},
+    {"name": "CD2_StringList_Selector", "notes": "internal selector wrapper", "src": "CustomDifficulty2/Mutators/Select/CD2_StringList_Selector.cpp:20"},
+    {"name": "CD2_Float_Variable_Mutator", "notes": "internal: built from {\"Var\":...}", "src": "CustomDifficulty2/Mutators/Variables/CD2_Float_Variable_Mutator.cpp:30"},
+    {"name": "CD2_Boolean_Variable_Mutator", "notes": "internal: {\"Var\":...}", "src": "CustomDifficulty2/Mutators/Variables/CD2_Boolean_Variable_Mutator.cpp:1"},
+    {"name": "CD2_String_Variable_Mutator", "notes": "internal: {\"Var\":...}", "src": "CustomDifficulty2/Mutators/Variables/CD2_String_Variable_Mutator.cpp:1"},
+    {"name": "CD2_StringList_Variable_Mutator", "notes": "internal: {\"Var\":...}", "src": "CustomDifficulty2/Mutators/Variables/CD2_StringList_Variable_Mutator.cpp:1"},
+    {"name": "FloatLiteral", "notes": "internal: JSON number; via Mutate it errors '!Internal Error! Expected Float Literal'", "src": "CustomDifficulty2/Mutators/Mutators/FloatLiteral.cpp:6"},
+    {"name": "BooleanLiteral", "notes": "internal: JSON bool", "src": "CustomDifficulty2/Mutators/Mutators/BooleanLiteral.cpp:6"},
+    {"name": "StringLiteral", "notes": "internal: JSON string", "src": "CustomDifficulty2/Mutators/Mutators/StringLiteral.cpp:6"},
+    {"name": "FlatteningStringList", "notes": "internal: JSON array in a stringlist context", "src": "CustomDifficulty2/Mutators/Mutators/FlatteningStringList.cpp:37"}
+  ]
+}

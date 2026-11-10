@@ -1,0 +1,1722 @@
+{
+ "modules": {
+  "Caps": {
+   "type": "object",
+   "fields": {
+    "MaxActiveCritters": {
+     "type": "float",
+     "default": 60,
+     "notes": "truncated to int; MinUpdateInterval 0.5",
+     "src": "CustomDifficulty2/Modules/Caps.cpp:91"
+    },
+    "MaxActiveSwarmers": {
+     "type": "float",
+     "default": 60,
+     "notes": "truncated to int",
+     "src": "CustomDifficulty2/Modules/Caps.cpp:93"
+    },
+    "MaxActiveEnemies": {
+     "type": "float",
+     "default": 60,
+     "notes": "truncated to int",
+     "src": "CustomDifficulty2/Modules/Caps.cpp:95"
+    }
+   },
+   "unknown": "error",
+   "default": {
+    "MaxActiveCritters": 60,
+    "MaxActiveSwarmers": 60,
+    "MaxActiveEnemies": 60
+   },
+   "notes": "unknown key -> error `Unrecognized Field \"X\"`; non-object -> `Caps Settings Must Be a Map`. Values re-applied by a 0.543 s timer.",
+   "src": "CustomDifficulty2/Modules/Caps.cpp:52"
+  },
+  "Darkness": {
+   "type": "object",
+   "fields": {
+    "FlashlightStrength": {
+     "type": "float",
+     "notes": "MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:251"
+    },
+    "FlareCooldown": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:253"
+    },
+    "FlareProductionTime": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:255"
+    },
+    "FlareMax": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:257"
+    },
+    "PlayerIllumination": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:259"
+    },
+    "FlareStrength": {
+     "type": "float",
+     "notes": "unset -> 1.0 (line 610)",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:261"
+    },
+    "FlareDuration": {
+     "type": "float",
+     "notes": "unset -> 30 (line 615)",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:263"
+    },
+    "EnvironmentalLight": {
+     "type": "float",
+     "notes": "environment light strength",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:265"
+    },
+    "DisableTabHighlight": {
+     "type": "bool",
+     "notes": "MinUpdateInterval 0.5",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:267"
+    },
+    "DisableFog": {
+     "type": "bool",
+     "notes": "MinUpdateInterval 0.5",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:269"
+    },
+    "FlareGunStrength": {
+     "type": "float",
+     "notes": "unset -> 1.0 (line 875)",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:271"
+    },
+    "FlareGunDuration": {
+     "type": "float",
+     "notes": "unset -> 120 (line 880)",
+     "src": "CustomDifficulty2/Modules/Darkness.cpp:273"
+    }
+   },
+   "unknown": "error",
+   "notes": "All floats MinUpdateInterval 1.0, not server-only. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\"). GetDefaultState null.",
+   "src": "CustomDifficulty2/Modules/Darkness.cpp:205"
+  },
+  "Description": {
+   "type": "rawstring",
+   "notes": "any string; non-string -> error `Description must be a string`. Not mutatable (GetString).",
+   "src": "CustomDifficulty2/Modules/Description.cpp:24"
+  },
+  "DifficultySetting": {
+   "type": "object",
+   "fields": {
+    "EnvironmentalDamageModifier": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "PointExtractionScalar": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "FriendlyFireModifier": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "WaveStartDelayScale": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "SpeedModifier": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "AttackCooldownModifier": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "ProjectileSpeedModifier": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "HealthRegenerationMax": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "ReviveHealthRatio": {
+     "type": "float",
+     "notes": "scalar UDifficultySetting field; WireFloatValue (CustomDifficulty2/Modules/DifficultySetting.cpp:311): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_Floats.h:6"
+    },
+    "ExtraLargeEnemyDamageResistance": {
+     "type": "floatarray",
+     "notes": "per-player-count array (index = player count - 1, as the game's own arrays); WireFloatArrayValue (CustomDifficulty2/Modules/DifficultySetting.cpp:293): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_PlayerArrays.h:6"
+    },
+    "ExtraLargeEnemyDamageResistanceB": {
+     "type": "floatarray",
+     "notes": "per-player-count array (index = player count - 1, as the game's own arrays); WireFloatArrayValue (CustomDifficulty2/Modules/DifficultySetting.cpp:293): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_PlayerArrays.h:6"
+    },
+    "ExtraLargeEnemyDamageResistanceC": {
+     "type": "floatarray",
+     "notes": "per-player-count array (index = player count - 1, as the game's own arrays); WireFloatArrayValue (CustomDifficulty2/Modules/DifficultySetting.cpp:293): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_PlayerArrays.h:6"
+    },
+    "ExtraLargeEnemyDamageResistanceD": {
+     "type": "floatarray",
+     "notes": "per-player-count array (index = player count - 1, as the game's own arrays); WireFloatArrayValue (CustomDifficulty2/Modules/DifficultySetting.cpp:293): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_PlayerArrays.h:6"
+    },
+    "EnemyDamageResistance": {
+     "type": "floatarray",
+     "notes": "per-player-count array (index = player count - 1, as the game's own arrays); WireFloatArrayValue (CustomDifficulty2/Modules/DifficultySetting.cpp:293): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_PlayerArrays.h:6"
+    },
+    "SmallEnemyDamageResistance": {
+     "type": "floatarray",
+     "notes": "per-player-count array (index = player count - 1, as the game's own arrays); WireFloatArrayValue (CustomDifficulty2/Modules/DifficultySetting.cpp:293): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_PlayerArrays.h:6"
+    },
+    "EnemyCountModifier": {
+     "type": "floatarray",
+     "notes": "per-player-count array (index = player count - 1, as the game's own arrays); WireFloatArrayValue (CustomDifficulty2/Modules/DifficultySetting.cpp:293): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_PlayerArrays.h:6"
+    },
+    "EnemyDamageModifier": {
+     "type": "floatarray",
+     "notes": "per-player-count array (index = player count - 1, as the game's own arrays); WireFloatArrayValue (CustomDifficulty2/Modules/DifficultySetting.cpp:293): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_PlayerArrays.h:6"
+    },
+    "EncounterDifficulty": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "StationaryDifficulty": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "EnemyWaveInterval": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "EnemyNormalWaveInterval": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "EnemyNormalWaveDifficulty": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "EnemyDiversity": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "StationaryEnemyDiversity": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "VeteranNormal": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0; applied to the veteran settings (inner switch on 7/8 at CustomDifficulty2/Modules/DifficultySetting.cpp:680)",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "VeteranLarge": {
+     "type": "randinterval",
+     "notes": "random interval list ({Weight,Min,Max} entries, see MakeRandIntervalsValue); WireRandIntervalValue (CustomDifficulty2/Modules/DifficultySetting.cpp:302): server-only, MinUpdateInterval 1.0; applied to the veteran settings (inner switch on 7/8 at CustomDifficulty2/Modules/DifficultySetting.cpp:680)",
+     "src": "CustomDifficulty2/ModuleComponents/DifficultySettings/CD2_EDifficultySettings_RandInterval.h:6"
+    },
+    "BaseHazard": {
+     "type": "string",
+     "enum": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "3.5",
+      "4.5",
+      "5.5",
+      "Hazard 1",
+      "Hazard 2",
+      "Hazard 3",
+      "Hazard 4",
+      "Hazard 5",
+      "Hazard 3.5",
+      "Hazard 4.5",
+      "Hazard 5.5"
+     ],
+     "notes": "server-only, MinUpdateInterval 40. Picks the base UDifficultySetting asset. Accepted values are the HazardAliases keys (DifficultySetting.h:27); anything else logs `Unrecognized BaseHazard X` at runtime (not a load error)",
+     "src": "CustomDifficulty2/Modules/DifficultySetting.cpp:258"
+    }
+   },
+   "unknown": "error",
+   "notes": "Key set = display names of CD2_EDifficultySettings_Floats (9), _RandInterval (9), _PlayerArrays (8) plus \"BaseHazard\", built in ReceiveBeginPlay (CustomDifficulty2/Modules/DifficultySetting.cpp:6). Key not in that set -> error `Unrecognized Field 'X'` (path given is the module's, not the key's). Non-object -> `DifficultySettings Must Be a Map`. Keys present in the previous Update but absent now are reset to the hazard default (LoadDefaultForKey). GetDefaultState null.",
+   "src": "CustomDifficulty2/Modules/DifficultySetting.cpp:148"
+  },
+  "Dwarves": {
+   "type": "object",
+   "fields": {
+    "Mass": {
+     "type": "float",
+     "notes": "CD2_DC_Mass; MinUpdateInterval 0.5",
+     "src": "CustomDifficulty2/ModuleComponents/Dwarves/CD2_DC_Mass.cpp:8"
+    },
+    "Scale": {
+     "type": "float",
+     "notes": "CD2_DC_Scale (registers under the name \"Mass\", internal only)",
+     "src": "CustomDifficulty2/ModuleComponents/Dwarves/CD2_DC_Scale.cpp:8"
+    },
+    "RegenHealthPerSecond": {
+     "type": "float",
+     "src": "CustomDifficulty2/ModuleComponents/Dwarves/CD2_DC_RegenHealthPerSecond.cpp:8"
+    },
+    "RegenDelayAfterDamage": {
+     "type": "float",
+     "src": "CustomDifficulty2/ModuleComponents/Dwarves/CD2_DC_RegenDelayAfterDamage.cpp:8"
+    },
+    "FallDamageModifier": {
+     "type": "float",
+     "src": "CustomDifficulty2/ModuleComponents/Dwarves/CD2_DC_FallDamageModifier.cpp:8"
+    },
+    "FallDamageStartVelocity": {
+     "type": "float",
+     "src": "CustomDifficulty2/ModuleComponents/Dwarves/CD2_DC_FallDamageStartVelocity.cpp:8"
+    },
+    "Test": {
+     "type": "rawany",
+     "notes": "value ignored; presence enables a movement-base experiment (bIgnoreBaseRotation, CanCharacterStepUpOn...). Debug.",
+     "src": "CustomDifficulty2/ModuleComponents/Dwarves/CD2_DC_Test.cpp:6"
+    }
+   },
+   "unknown": "ignored",
+   "notes": "Each key spawns a CD2_SM_Base_DwarfControl subclass fed the raw value. Unknown keys are silently ignored (no default branch). non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+   "src": "CustomDifficulty2/Modules/Dwarves.cpp:29"
+  },
+  "EDTest": {
+   "type": "map",
+   "values": {
+    "type": "object",
+    "notes": "CD2_SM_ED config (ModuleComponents/Enemies/CD2_SM_ED.cpp, covered by the Enemies reader): keys SpawnRarityModifiers, VeteranClasses, Significance, UsesBiomeVariants plus the CD2_EEnemyDescriptor_Floats/_Booleans names.",
+    "src": "CustomDifficulty2/ModuleComponents/Enemies/CD2_SM_ED.cpp:80"
+   },
+   "unknown": "error",
+   "notes": "keys = UEnemyDescriptor object names found by FindEnemyDescriptors (EDTest.cpp:46); other -> `Unknown EnemyDescriptor 'X'`; non-object -> `Expected a Map`.",
+   "src": "CustomDifficulty2/ModuleComponents/EDTest/EDTest_SubmoduleMain.cpp:6",
+   "test": true
+  },
+  "EWC2": {
+   "type": "object",
+   "fields": {
+    "ScriptedWaves": {
+     "type": "map",
+     "fields": {
+      "Clear": {
+       "type": "bool",
+       "notes": "default false; true -> every wave controller not Enable:true is removed",
+       "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:62"
+      }
+     },
+     "values": {
+      "type": "object",
+      "fields": {
+       "Enable": {
+        "type": "bool",
+        "notes": "unset -> (not Clear) and the wave already in the list (line 278)",
+        "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:85"
+       },
+       "Weight": {
+        "type": "float",
+        "notes": "unset -> the wave's existing weight",
+        "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:87"
+       }
+      },
+      "unknown": "error",
+      "notes": "unknown key -> `Unexpected field 'X'`; not an object -> `Expected a Map`",
+      "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:71"
+     },
+     "unknown": "error",
+     "notes": "Keys: \"Clear\" or a wave-controller class name = BP asset name under /Game/Enemies/Waves/WaveControllers minus its last 2 chars (EWC2.cpp:40). Unknown name -> `Unknown EWC 'X'`. Non-object -> `Expected a Map`. All values MinUpdateInterval 0.5, not server-only.",
+     "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleMain.cpp:38"
+    },
+    "EndMissionWaves": {
+     "type": "map",
+     "fields": {
+      "Clear": {
+       "type": "bool",
+       "notes": "default false; true -> every wave controller not Enable:true is removed",
+       "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:62"
+      }
+     },
+     "values": {
+      "type": "object",
+      "fields": {
+       "Enable": {
+        "type": "bool",
+        "notes": "unset -> (not Clear) and the wave already in the list (line 278)",
+        "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:85"
+       },
+       "Weight": {
+        "type": "float",
+        "notes": "unset -> the wave's existing weight",
+        "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:87"
+       }
+      },
+      "unknown": "error",
+      "notes": "unknown key -> `Unexpected field 'X'`; not an object -> `Expected a Map`",
+      "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:71"
+     },
+     "unknown": "error",
+     "notes": "Keys: \"Clear\" or a wave-controller class name = BP asset name under /Game/Enemies/Waves/WaveControllers minus its last 2 chars (EWC2.cpp:40). Unknown name -> `Unknown EWC 'X'`. Non-object -> `Expected a Map`. All values MinUpdateInterval 0.5, not server-only. Same shape, targets WaveManager EndMissionWaves (WavesType=1).",
+     "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleMain.cpp:38"
+    }
+   },
+   "unknown": "ignored",
+   "notes": "Root submodule EWC_SubmoduleMain. Unknown top-level keys are silently ignored (no default branch). Non-object -> `Expected a Map`.",
+   "src": "CustomDifficulty2/Modules/EWC2.cpp:14"
+  },
+  "EWC_Bad": {
+   "type": "object",
+   "fields": {
+    "ScriptedWaves": {
+     "type": "map",
+     "fields": {
+      "Clear": {
+       "type": "bool",
+       "notes": "default false; true -> every wave controller not Enable:true is removed",
+       "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:62"
+      }
+     },
+     "values": {
+      "type": "object",
+      "fields": {
+       "Enable": {
+        "type": "bool",
+        "notes": "unset -> (not Clear) and the wave already in the list (line 278)",
+        "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:85"
+       },
+       "Weight": {
+        "type": "float",
+        "notes": "unset -> the wave's existing weight",
+        "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:87"
+       }
+      },
+      "unknown": "error",
+      "notes": "unknown key -> `Unexpected field 'X'`; not an object -> `Expected a Map`",
+      "src": "CustomDifficulty2/ModuleComponents/EnemyWaveManager/EWC_SubmoduleWaves.cpp:71"
+     },
+     "unknown": "error",
+     "notes": "Older inline copy of EWC2 ScriptedWaves: same \"Clear\" + {wave controller name: {Enable, Weight}} shape and errors (`Unknown EWC`, `Unexpected field`, `Expected a Map`).",
+     "src": "CustomDifficulty2/Modules/TestModules/EWC_Bad.cpp:99"
+    }
+   },
+   "unknown": "ignored",
+   "notes": "Predecessor of EWC2 (ScriptedWaves only). Unknown top-level keys ignored; non-object -> `Expected a Map`.",
+   "src": "CustomDifficulty2/Modules/TestModules/EWC_Bad.cpp:15",
+   "test": true
+  },
+  "Escort": {
+   "type": "rawany",
+   "notes": "Update ignores State entirely (only tears down submodules; none are ever registered). Any value accepted, no effect.",
+   "src": "CustomDifficulty2/Modules/Escort.cpp:49"
+  },
+  "EscortMule": {
+   "type": "object",
+   "fields": {
+    "FriendlyFireModifier": {
+     "type": "float",
+     "default": 0.1,
+     "notes": "MinUpdateInterval 0.5",
+     "src": "CustomDifficulty2/Modules/EscortMule.cpp:188"
+    },
+    "BigHitDamageModifier": {
+     "type": "float",
+     "default": 0.5,
+     "src": "CustomDifficulty2/Modules/EscortMule.cpp:190"
+    },
+    "BigHitDamageReductionThreshold": {
+     "type": "float",
+     "default": 6,
+     "src": "CustomDifficulty2/Modules/EscortMule.cpp:192"
+    },
+    "NeutralDamageModifier": {
+     "type": "float",
+     "default": 0.1,
+     "src": "CustomDifficulty2/Modules/EscortMule.cpp:194"
+    }
+   },
+   "unknown": "error",
+   "default": {
+    "FriendlyFireModifier": 0.1,
+    "BigHitDamageModifier": 0.5,
+    "BigHitDamageReductionThreshold": 6,
+    "NeutralDamageModifier": 0.1
+   },
+   "notes": "unknown key -> error `Unrecognized Field \"X\"`; non-object -> `Escort Mule Settings Must Be a Map`.",
+   "src": "CustomDifficulty2/Modules/EscortMule.cpp:148"
+  },
+  "MachineEvents": {
+   "type": "map",
+   "values": {
+    "type": "object",
+    "fields": {
+     "Enable": {
+      "type": "bool",
+      "notes": "MinUpdateInterval 0.5; unset -> !Clear",
+      "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:100"
+     }
+    },
+    "unknown": "error",
+    "notes": "per-event object; unknown key -> error `Unexpected field 'X'`; not an object -> `Expected a Map`",
+    "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:85"
+   },
+   "fields": {
+    "Clear": {
+     "type": "bool",
+     "notes": "default false; when true every event not explicitly Enable:true is dropped",
+     "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:77"
+    }
+   },
+   "unknown": "error",
+   "notes": "Keys: \"Clear\", or the object name (Conv_ObjectToString) of an event currently in SpecialEventSettings.MachineEvents (collected at enable, CustomDifficulty2/Modules/Events/MachineEvents.cpp:40). Unknown event name -> `Unknown seasonal event 'X'` (same text in all four event modules). Non-object -> `Expected a Map`. GetDefaultState null.",
+   "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:13"
+  },
+  "MaxPlayers": {
+   "type": "float",
+   "notes": "server-only, MinUpdateInterval 2.0; rounded and clamped to 1..16, sets OverrideMaxPlayerCount",
+   "src": "CustomDifficulty2/Modules/MaxPlayers.cpp:25"
+  },
+  "Messages": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "fields": {
+     "Send": {
+      "type": "bool",
+      "default": false,
+      "notes": "when it becomes true (and on ready if true) the message is sent",
+      "src": "CustomDifficulty2/ModuleComponents/Messages/CD2_SM_Messages.cpp:44"
+     },
+     "SendOnChange": {
+      "type": "bool",
+      "default": false,
+      "notes": "resend when Message changes",
+      "src": "CustomDifficulty2/ModuleComponents/Messages/CD2_SM_Messages.cpp:46"
+     },
+     "Type": {
+      "type": "string",
+      "default": "Game",
+      "enum": [
+       "Game",
+       "Normal",
+       "Delux",
+       "Developer",
+       "Streamer",
+       "Modder"
+      ],
+      "notes": "chat type; Game -> ES_Game; Normal/Delux/Developer/Streamer -> chat with that sender type; Modder -> chat with sender type Translator; any other value -> the message is silently not sent (switch at line 130)",
+      "src": "CustomDifficulty2/ModuleComponents/Messages/CD2_SM_Messages.cpp:48"
+     },
+     "Sender": {
+      "type": "string",
+      "default": "CD2",
+      "src": "CustomDifficulty2/ModuleComponents/Messages/CD2_SM_Messages.cpp:50"
+     },
+     "Message": {
+      "type": "string",
+      "default": "*MISSING MESSAGE*",
+      "src": "CustomDifficulty2/ModuleComponents/Messages/CD2_SM_Messages.cpp:52"
+     }
+    },
+    "unknown": "error",
+    "notes": "CD2_SM_Messages; all values server-only, MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> `{name} Must Be a JSON Map`.",
+    "src": "CustomDifficulty2/ModuleComponents/Messages/CD2_SM_Messages.cpp:6"
+   },
+   "notes": "Server only (clients skip Update). Non-array -> `{name} Must Be a JSON Array`.",
+   "src": "CustomDifficulty2/Modules/Messages.cpp:54"
+  },
+  "MinorSeasonalEvents": {
+   "type": "map",
+   "values": {
+    "type": "object",
+    "fields": {
+     "Enable": {
+      "type": "bool",
+      "notes": "MinUpdateInterval 0.5; unset -> !Clear",
+      "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:100"
+     }
+    },
+    "unknown": "error",
+    "notes": "per-event object; unknown key -> error `Unexpected field 'X'`; not an object -> `Expected a Map`",
+    "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:85"
+   },
+   "fields": {
+    "Clear": {
+     "type": "bool",
+     "notes": "default false; when true every event not explicitly Enable:true is dropped",
+     "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:77"
+    }
+   },
+   "unknown": "error",
+   "notes": "Keys: \"Clear\", or the object name (Conv_ObjectToString) of an event currently in CurrentSeason.MinorSeasonalEvents (collected at enable, CustomDifficulty2/Modules/Events/MinorSeasonalEvents.cpp:40). Unknown event name -> `Unknown seasonal event 'X'` (same text in all four event modules). Non-object -> `Expected a Map`. GetDefaultState null.",
+   "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:13"
+  },
+  "Mule": {
+   "type": "object",
+   "fields": {
+    "Scale": {
+     "type": "float",
+     "notes": "MinUpdateInterval 0.2",
+     "src": "CustomDifficulty2/Modules/Mule.cpp:71"
+    },
+    "TimeDilation": {
+     "type": "float",
+     "notes": "MinUpdateInterval 0.2",
+     "src": "CustomDifficulty2/Modules/Mule.cpp:73"
+    }
+   },
+   "unknown": "error",
+   "notes": "Server only. unknown key -> error `Unrecognized Field \"X\"`; non-object -> `Mule Settings Must Be a Map`. GetDefaultState null.",
+   "src": "CustomDifficulty2/Modules/Mule.cpp:32"
+  },
+  "Name": {
+   "type": "rawstring",
+   "default": "Custom Difficulty",
+   "notes": "renames every hazard to this string (short) and \"H{i}: {name}\" (long) in shipping builds; non-string -> error `Name must be a string`. Not mutatable.",
+   "src": "CustomDifficulty2/Modules/Name.cpp:43"
+  },
+  "NextDifficulty": {
+   "type": "string",
+   "notes": "server-only, NOT replicated (AllowReplicated=false), MinUpdateInterval 0.5. Name of a difficulty saved in the CD2 save slot (CD2_Save.Difficulties). Every string literal reachable in the value (mutator children included) must be such a name or \"\" -> otherwise error `DifficultyNotFound`. The difficulty is loaded when the module's actor ends play (mission end).",
+   "src": "CustomDifficulty2/Modules/NextDifficulty.cpp:61"
+  },
+  "NitraMultiplier": {
+   "type": "float",
+   "notes": "MinUpdateInterval 2.0; multiplies every mission template's nitra amount-to-spawn interval",
+   "src": "CustomDifficulty2/Modules/NitraMultiplier.cpp:23"
+  },
+  "OtherSpecialEvents": {
+   "type": "map",
+   "values": {
+    "type": "object",
+    "fields": {
+     "Enable": {
+      "type": "bool",
+      "notes": "MinUpdateInterval 0.5; unset -> !Clear",
+      "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:100"
+     }
+    },
+    "unknown": "error",
+    "notes": "per-event object; unknown key -> error `Unexpected field 'X'`; not an object -> `Expected a Map`",
+    "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:85"
+   },
+   "fields": {
+    "Clear": {
+     "type": "bool",
+     "notes": "default false; when true every event not explicitly Enable:true is dropped",
+     "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:77"
+    }
+   },
+   "unknown": "error",
+   "notes": "Keys: \"Clear\", or the object name (Conv_ObjectToString) of an event currently in SpecialEventSettings.OtherSpecialEvents (collected at enable, CustomDifficulty2/Modules/Events/OtherSpecialEvents.cpp:40). Unknown event name -> `Unknown seasonal event 'X'` (same text in all four event modules). Non-object -> `Expected a Map`. GetDefaultState null.",
+   "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:13"
+  },
+  "PLSTest": {
+   "type": "object",
+   "fields": {
+    "RockMaterial": {
+     "type": "rawstring",
+     "notes": "soft path of a UTerrainMaterial; non-string -> `Expected a String`; not loadable as TerrainMaterial -> `Expected TerrainMaterial soft path`",
+     "src": "CustomDifficulty2/Modules/TestModules/PLSTest.cpp:265"
+    },
+    "MissionLength": {
+     "type": "float",
+     "notes": "key from enum CD2_PLSTest_Floats",
+     "src": "CustomDifficulty2/Modules/TestModules/PLSTest.cpp:268"
+    },
+    "A": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/TestModules/PLSTest.cpp:268"
+    },
+    "B": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/TestModules/PLSTest.cpp:268"
+    },
+    "C": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/TestModules/PLSTest.cpp:268"
+    },
+    "D": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/TestModules/PLSTest.cpp:268"
+    },
+    "E": {
+     "type": "float",
+     "src": "CustomDifficulty2/Modules/TestModules/PLSTest.cpp:268"
+    }
+   },
+   "unknown": "error",
+   "default": {
+    "Value1": 5.0,
+    "Value2": 3.1
+   },
+   "notes": "Float keys are the display names of CD2_PLSTest_Floats (ModuleComponents/PLSTest/CD2_PLSTest_Floats.h). Unknown key -> `Unexpected field 'X'`; non-object -> `Expected a Map`. Default JSON uses Value1/Value2, which this module would reject.",
+   "src": "CustomDifficulty2/Modules/TestModules/PLSTest.cpp:215",
+   "test": true
+  },
+  "PLSTest2": {
+   "type": "object",
+   "fields": {
+    "Biome": {
+     "type": "map",
+     "values": {
+      "type": "object",
+      "fields": {
+       "Base": {
+        "type": "rawstring",
+        "notes": "soft path of a UTerrainMaterial to copy from; errors `Expected a String` / `Expected TerrainMaterial soft path`",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:60"
+       },
+       "TerrainType": {
+        "type": "rawstring",
+        "notes": "soft path of a UTerrainType; errors `Expected a String` / `Expected TerrainType soft path`",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:78"
+       },
+       "Collide": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:62"
+       },
+       "Diggable": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:62"
+       },
+       "CanBeDrilled": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:62"
+       },
+       "ExplosionProof": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:62"
+       },
+       "MeltsInFire": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:62"
+       },
+       "PlatformDissolvable": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:62"
+       },
+       "PathfinderDanger": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:62"
+       },
+       "PathfinderPreventSpawning": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:62"
+       }
+      },
+      "unknown": "error",
+      "notes": "unknown key -> `Unknown field 'X'`; non-object -> `Expected a Map`.",
+      "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleTerrainMaterial.cpp:6"
+     },
+     "unknown": "error",
+     "notes": "keys = display names of CD2_PLSTest2_Biome_TerrainMaterials: RockMaterial, DirtMaterial, BurnedMaterialOverride; other key -> `Unknown field 'X'`; non-object -> `Expected a Map`.",
+     "enum": [
+      "RockMaterial",
+      "DirtMaterial",
+      "BurnedMaterialOverride"
+     ],
+     "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleBiome.cpp:58"
+    }
+   },
+   "unknown": "error",
+   "notes": "unknown key -> `Unknown field 'X'`; non-object -> `Expected a Map`.",
+   "src": "CustomDifficulty2/ModuleComponents/PLSTest2/PLSTest2_SubmoduleMain.cpp:6",
+   "test": true
+  },
+  "Pools": {
+   "type": "object",
+   "fields": {
+    "MinPoolSize": {
+     "type": "float",
+     "notes": "CD2_SM_MinPoolSize; server-only, MinUpdateInterval 1.0; unset -> hazard default",
+     "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_MinPoolSize.cpp:8"
+    },
+    "DisruptiveEnemyPoolCount": {
+     "type": "object",
+     "fields": {
+      "Min": {
+       "type": "float",
+       "notes": "server-only, MinUpdateInterval 1.0; unset -> the hazard's own value",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_DisruptiveEnemyPoolCount.cpp:40"
+      },
+      "Max": {
+       "type": "float",
+       "notes": "server-only, MinUpdateInterval 1.0; unset -> the hazard's own value",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_DisruptiveEnemyPoolCount.cpp:40"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_DisruptiveEnemyPoolCount. unknown key -> error `Unrecognized Field 'X'`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+     "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_DisruptiveEnemyPoolCount.cpp:6"
+    },
+    "StationaryEnemyCount": {
+     "type": "object",
+     "fields": {
+      "Min": {
+       "type": "float",
+       "notes": "server-only, MinUpdateInterval 1.0; unset -> the hazard's own value",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_StationaryEnemyCount.cpp:40"
+      },
+      "Max": {
+       "type": "float",
+       "notes": "server-only, MinUpdateInterval 1.0; unset -> the hazard's own value",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_StationaryEnemyCount.cpp:40"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_StationaryEnemyCount. unknown key -> error `Unrecognized Field 'X'`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+     "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_StationaryEnemyCount.cpp:6"
+    },
+    "EnemyPool": {
+     "type": "object",
+     "fields": {
+      "Clear": {
+       "type": "bool",
+       "notes": "server-only value; when true the pool is emptied before Add/Remove apply",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_EnemyPool.cpp:114"
+      },
+      "Add": {
+       "type": "stringlist",
+       "notes": "enemy descriptor names resolved through the CD2 ED registry (CD2_Updating_ED_StringList); unknown names make the list \"incomplete\" (it waits for them to be registered) rather than erroring",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_EnemyPool.cpp:114"
+      },
+      "Remove": {
+       "type": "stringlist",
+       "notes": "same name resolution as Add",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_EnemyPool.cpp:114"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_EnemyPool (the mission's enemy pool). All values server-only (ServerOnly=true), MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+     "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_EnemyPool.cpp:74"
+    },
+    "StationaryPool": {
+     "type": "object",
+     "fields": {
+      "Clear": {
+       "type": "bool",
+       "notes": "server-only value; when true the pool is emptied before Add/Remove apply",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_StationaryPool.cpp:114"
+      },
+      "Add": {
+       "type": "stringlist",
+       "notes": "enemy descriptor names resolved through the CD2 ED registry (CD2_Updating_ED_StringList); unknown names make the list \"incomplete\" (it waits for them to be registered) rather than erroring",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_StationaryPool.cpp:114"
+      },
+      "Remove": {
+       "type": "stringlist",
+       "notes": "same name resolution as Add",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_StationaryPool.cpp:114"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_StationaryPool. All values server-only (ServerOnly=true), MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+     "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_StationaryPool.cpp:74"
+    },
+    "CommonEnemies": {
+     "type": "object",
+     "fields": {
+      "Clear": {
+       "type": "bool",
+       "notes": "server-only value; when true the pool is emptied before Add/Remove apply",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      },
+      "Add": {
+       "type": "stringlist",
+       "notes": "enemy descriptor names resolved through the CD2 ED registry (CD2_Updating_ED_StringList); unknown names make the list \"incomplete\" (it waits for them to be registered) rather than erroring",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      },
+      "Remove": {
+       "type": "stringlist",
+       "notes": "same name resolution as Add",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_CommonEnemies (CD2_SM_SourcePool subclass). All values server-only (ServerOnly=true), MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+     "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:68"
+    },
+    "SpecialEnemies": {
+     "type": "object",
+     "fields": {
+      "Clear": {
+       "type": "bool",
+       "notes": "server-only value; when true the pool is emptied before Add/Remove apply",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      },
+      "Add": {
+       "type": "stringlist",
+       "notes": "enemy descriptor names resolved through the CD2 ED registry (CD2_Updating_ED_StringList); unknown names make the list \"incomplete\" (it waits for them to be registered) rather than erroring",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      },
+      "Remove": {
+       "type": "stringlist",
+       "notes": "same name resolution as Add",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_SpecialEnemies (CD2_SM_SourcePool subclass). All values server-only (ServerOnly=true), MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+     "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:68"
+    },
+    "DisruptiveEnemies": {
+     "type": "object",
+     "fields": {
+      "Clear": {
+       "type": "bool",
+       "notes": "server-only value; when true the pool is emptied before Add/Remove apply",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      },
+      "Add": {
+       "type": "stringlist",
+       "notes": "enemy descriptor names resolved through the CD2 ED registry (CD2_Updating_ED_StringList); unknown names make the list \"incomplete\" (it waits for them to be registered) rather than erroring",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      },
+      "Remove": {
+       "type": "stringlist",
+       "notes": "same name resolution as Add",
+       "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:108"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_DisruptiveEnemies (CD2_SM_SourcePool subclass). All values server-only (ServerOnly=true), MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+     "src": "CustomDifficulty2/ModuleComponents/Pools/CD2_SM_SourcePool.cpp:68"
+    }
+   },
+   "unknown": "error",
+   "notes": "unknown key -> error `Unrecognized Field 'X'`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\"). GetDefaultState null.",
+   "src": "CustomDifficulty2/Modules/Pools.cpp:13"
+  },
+  "Resupply": {
+   "type": "object",
+   "fields": {
+    "Cost": {
+     "type": "float",
+     "notes": "resupply cost (ResupplyCostManager); MinUpdateInterval 0.5",
+     "src": "CustomDifficulty2/Modules/Resupply.cpp:127"
+    },
+    "UsableSettings": {
+     "type": "object",
+     "fields": {
+      "CoopUse": {
+       "type": "bool",
+       "notes": "unset -> the usable's own default (GetOrCreateDefault snapshot)",
+       "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:192"
+      },
+      "CoopUseMultiplier": {
+       "type": "float",
+       "notes": "unset -> usable default",
+       "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:194"
+      },
+      "Priority": {
+       "type": "float",
+       "notes": "stored as int on the usable; unset -> usable default",
+       "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:196"
+      },
+      "ResetOnFail": {
+       "type": "bool",
+       "notes": "unset -> usable default",
+       "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:198"
+      },
+      "UseText": {
+       "type": "string",
+       "notes": "read with default \"\"",
+       "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:200"
+      },
+      "UseCooldown": {
+       "type": "float",
+       "notes": "unset -> usable default",
+       "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:202"
+      },
+      "UseDuration": {
+       "type": "float",
+       "notes": "unset -> usable default",
+       "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:204"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_SingleUsable applied to supply pods' usable. CD2_SM_SingleUsable: overrides fields of a USingleUsableComponent; every value MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+     "src": "CustomDifficulty2/Modules/Resupply.cpp:129"
+    },
+    "HealAmount": {
+     "type": "rawany",
+     "notes": "accepted, no handler (ignored)",
+     "src": "CustomDifficulty2/Modules/Resupply.cpp:131"
+    },
+    "Callable": {
+     "type": "rawany",
+     "notes": "accepted, no handler (ignored)",
+     "src": "CustomDifficulty2/Modules/Resupply.cpp:133"
+    },
+    "Damage": {
+     "type": "rawany",
+     "notes": "accepted, no handler (ignored)",
+     "src": "CustomDifficulty2/Modules/Resupply.cpp:135"
+    },
+    "KillRadius": {
+     "type": "rawany",
+     "notes": "accepted, no handler (ignored)",
+     "src": "CustomDifficulty2/Modules/Resupply.cpp:137"
+    },
+    "Uses": {
+     "type": "rawany",
+     "notes": "accepted, no handler (ignored)",
+     "src": "CustomDifficulty2/Modules/Resupply.cpp:139"
+    }
+   },
+   "unknown": "error",
+   "notes": "unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+   "src": "CustomDifficulty2/Modules/Resupply.cpp:88"
+  },
+  "SR": {
+   "type": "rawnumber",
+   "default": {
+    "Value1": 5.0,
+    "Value2": 3.1
+   },
+   "notes": "only read on the space rig; 7 triggers SR7(); non-number -> `SR requires a number`. GetDefaultState is {\"Value1\":5.0,\"Value2\":3.1} (copy-paste, not a number).",
+   "src": "CustomDifficulty2/Modules/TestModules/SR.cpp:28",
+   "test": true
+  },
+  "Salvage": {
+   "type": "object",
+   "fields": {
+    "MiniMules": {
+     "type": "object",
+     "fields": {
+      "ScanUsable": {
+       "type": "object",
+       "fields": {
+        "CoopUse": {
+         "type": "bool",
+         "notes": "unset -> the usable's own default (GetOrCreateDefault snapshot)",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:192"
+        },
+        "CoopUseMultiplier": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:194"
+        },
+        "Priority": {
+         "type": "float",
+         "notes": "stored as int on the usable; unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:196"
+        },
+        "ResetOnFail": {
+         "type": "bool",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:198"
+        },
+        "UseText": {
+         "type": "string",
+         "notes": "read with default \"\"",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:200"
+        },
+        "UseCooldown": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:202"
+        },
+        "UseDuration": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:204"
+        }
+       },
+       "unknown": "error",
+       "notes": "CD2_SM_SingleUsable for the leg scan usable. CD2_SM_SingleUsable: overrides fields of a USingleUsableComponent; every value MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMiniMule.cpp:125"
+      },
+      "RepairUsable": {
+       "type": "object",
+       "fields": {
+        "CoopUse": {
+         "type": "bool",
+         "notes": "unset -> the usable's own default (GetOrCreateDefault snapshot)",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:192"
+        },
+        "CoopUseMultiplier": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:194"
+        },
+        "Priority": {
+         "type": "float",
+         "notes": "stored as int on the usable; unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:196"
+        },
+        "ResetOnFail": {
+         "type": "bool",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:198"
+        },
+        "UseText": {
+         "type": "string",
+         "notes": "read with default \"\"",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:200"
+        },
+        "UseCooldown": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:202"
+        },
+        "UseDuration": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:204"
+        }
+       },
+       "unknown": "error",
+       "notes": "CD2_SM_SingleUsable for the leg repair usable. CD2_SM_SingleUsable: overrides fields of a USingleUsableComponent; every value MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMiniMule.cpp:127"
+      },
+      "LegsRequired": {
+       "type": "float",
+       "notes": "MinUpdateInterval 1.83; fallback 0 when unset (line 41)",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMiniMule.cpp:129"
+      },
+      "LegsPerMule": {
+       "type": "float",
+       "notes": "MinUpdateInterval 1.83; fallback 0 (line 282)",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMiniMule.cpp:131"
+      },
+      "LegDistance": {
+       "type": "float",
+       "notes": "MinUpdateInterval 1.83; fallback 0 (line 290)",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMiniMule.cpp:133"
+      },
+      "Count": {
+       "type": "float",
+       "notes": "MinUpdateInterval 1.83; fallback 0 (line 296)",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMiniMule.cpp:135"
+      },
+      "NitraToGive": {
+       "type": "float",
+       "notes": "MinUpdateInterval 1.83; read with default -1 (line 59) = keep game value",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMiniMule.cpp:137"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_SalvageMiniMule. unknown key -> error `Unrecognized Field \"X\"`; non-object -> `{name} Must Be a JSON Map`.",
+     "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMain.cpp:110"
+    },
+    "Uplink": {
+     "type": "object",
+     "fields": {
+      "RepairUsable": {
+       "type": "object",
+       "fields": {
+        "CoopUse": {
+         "type": "bool",
+         "notes": "unset -> the usable's own default (GetOrCreateDefault snapshot)",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:192"
+        },
+        "CoopUseMultiplier": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:194"
+        },
+        "Priority": {
+         "type": "float",
+         "notes": "stored as int on the usable; unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:196"
+        },
+        "ResetOnFail": {
+         "type": "bool",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:198"
+        },
+        "UseText": {
+         "type": "string",
+         "notes": "read with default \"\"",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:200"
+        },
+        "UseCooldown": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:202"
+        },
+        "UseDuration": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:204"
+        }
+       },
+       "unknown": "error",
+       "notes": "CD2_SM_SingleUsable on the repair point's usable. CD2_SM_SingleUsable: overrides fields of a USingleUsableComponent; every value MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:104"
+      },
+      "Scale": {
+       "type": "float",
+       "notes": "MinUpdateInterval 0.5",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:106"
+      },
+      "Duration": {
+       "type": "float",
+       "notes": "event duration; unset -> the event's default duration",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:108"
+      },
+      "ExtraDefenderBonus ": {
+       "type": "float",
+       "notes": "the accepted key has a TRAILING SPACE (\"ExtraDefenderBonus \"); \"ExtraDefenderBonus\" without it is an Unrecognized Field. The value is then cached under the spaced name but read back as \"ExtraDefenderBonus\" (default -1, line 242), so it looks like it never takes effect. Unclear whether intended.",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:110"
+      },
+      "DisableLeaveShout": {
+       "type": "bool",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:112"
+      },
+      "LeavePenaltyMultiplier": {
+       "type": "float",
+       "notes": "unset -> 1.0 (line 237)",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:114"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_SalvageUplink (uplink repair event). unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` with {name}=SMName.",
+     "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMain.cpp:112"
+    },
+    "Refuel": {
+     "type": "object",
+     "fields": {
+      "RepairUsable": {
+       "type": "object",
+       "fields": {
+        "CoopUse": {
+         "type": "bool",
+         "notes": "unset -> the usable's own default (GetOrCreateDefault snapshot)",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:192"
+        },
+        "CoopUseMultiplier": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:194"
+        },
+        "Priority": {
+         "type": "float",
+         "notes": "stored as int on the usable; unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:196"
+        },
+        "ResetOnFail": {
+         "type": "bool",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:198"
+        },
+        "UseText": {
+         "type": "string",
+         "notes": "read with default \"\"",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:200"
+        },
+        "UseCooldown": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:202"
+        },
+        "UseDuration": {
+         "type": "float",
+         "notes": "unset -> usable default",
+         "src": "CustomDifficulty2/ModuleComponents/Common/CD2_SM_SingleUsable.cpp:204"
+        }
+       },
+       "unknown": "error",
+       "notes": "CD2_SM_SingleUsable on the repair point's usable. CD2_SM_SingleUsable: overrides fields of a USingleUsableComponent; every value MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:104"
+      },
+      "Scale": {
+       "type": "float",
+       "notes": "MinUpdateInterval 0.5",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:106"
+      },
+      "Duration": {
+       "type": "float",
+       "notes": "event duration; unset -> the event's default duration",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:108"
+      },
+      "ExtraDefenderBonus ": {
+       "type": "float",
+       "notes": "the accepted key has a TRAILING SPACE (\"ExtraDefenderBonus \"); \"ExtraDefenderBonus\" without it is an Unrecognized Field. The value is then cached under the spaced name but read back as \"ExtraDefenderBonus\" (default -1, line 242), so it looks like it never takes effect. Unclear whether intended.",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:110"
+      },
+      "DisableLeaveShout": {
+       "type": "bool",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:112"
+      },
+      "LeavePenaltyMultiplier": {
+       "type": "float",
+       "notes": "unset -> 1.0 (line 237)",
+       "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageUplink.cpp:114"
+      }
+     },
+     "unknown": "error",
+     "notes": "CD2_SM_SalvageFuelCells (subclass of SalvageUplink, same fields; fuel-pod event). unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` with {name}=SMName.",
+     "src": "CustomDifficulty2/ModuleComponents/Salvage/CD2_SM_SalvageMain.cpp:114"
+    }
+   },
+   "unknown": "error",
+   "notes": "Root submodule CD2_SM_SalvageMain. unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+   "src": "CustomDifficulty2/Modules/Salvage.cpp:13"
+  },
+  "SeasonalEvents": {
+   "type": "map",
+   "values": {
+    "type": "object",
+    "fields": {
+     "Enable": {
+      "type": "bool",
+      "notes": "MinUpdateInterval 0.5; unset -> !Clear",
+      "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:100"
+     }
+    },
+    "unknown": "error",
+    "notes": "per-event object; unknown key -> error `Unexpected field 'X'`; not an object -> `Expected a Map`",
+    "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:85"
+   },
+   "fields": {
+    "Clear": {
+     "type": "bool",
+     "notes": "default false; when true every event not explicitly Enable:true is dropped",
+     "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:77"
+    }
+   },
+   "unknown": "error",
+   "notes": "Keys: \"Clear\", or the object name (Conv_ObjectToString) of an event currently in CurrentSeason.SeasonalEvents (collected at enable, CustomDifficulty2/Modules/Events/SeasonalEvents.cpp:40). Unknown event name -> `Unknown seasonal event 'X'` (same text in all four event modules). Non-object -> `Expected a Map`. GetDefaultState null.",
+   "src": "CustomDifficulty2/ModuleComponents/Events/EventsBase.cpp:13"
+  },
+  "SoundCues": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "fields": {
+     "Play": {
+      "type": "bool",
+      "default": false,
+      "notes": "true -> play to every player (also on ready if true)",
+      "src": "CustomDifficulty2/ModuleComponents/SoundCues/CD2_SM_Cue.cpp:43"
+     },
+     "Cue": {
+      "type": "string",
+      "default": "",
+      "notes": "soft object path of a USoundCue; unloadable -> plays Button_Click_keyboard_01_Cue",
+      "src": "CustomDifficulty2/ModuleComponents/SoundCues/CD2_SM_Cue.cpp:45"
+     }
+    },
+    "unknown": "error",
+    "notes": "CD2_SM_Cue; server-only values, MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"` (note: code reads \"SendOnChange\" (line 153) but does not accept it as a key, so it is always false); non-object -> `{name} Must Be a JSON Map`.",
+    "src": "CustomDifficulty2/ModuleComponents/SoundCues/CD2_SM_Cue.cpp:6"
+   },
+   "notes": "Server only. Non-array -> `{name} Must Be a JSON Array`.",
+   "src": "CustomDifficulty2/Modules/SoundCues.cpp:54"
+  },
+  "SpecialEncounters": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "fields": {
+     "Enemy": {
+      "type": "string",
+      "notes": "enemy descriptor name resolved via the ED registry (CD2_Updating_ED_String); the item is skipped while it does not resolve",
+      "src": "CustomDifficulty2/ModuleComponents/SpecialEncounters/SpecialEncounters_SM.cpp:43"
+     },
+     "BaseChance": {
+      "type": "float",
+      "default": 0,
+      "src": "CustomDifficulty2/ModuleComponents/SpecialEncounters/SpecialEncounters_SM.cpp:45"
+     },
+     "CanSpawnInDeepDive": {
+      "type": "bool",
+      "default": false,
+      "src": "CustomDifficulty2/ModuleComponents/SpecialEncounters/SpecialEncounters_SM.cpp:47"
+     }
+    },
+    "unknown": "error",
+    "notes": "One FEncounterSpecialItem. Server-only values, MinUpdateInterval 0.5. unknown key -> error `Unrecognized Field \"X\"`; non-object -> `{name} Must Be a JSON Map`.",
+    "src": "CustomDifficulty2/ModuleComponents/SpecialEncounters/SpecialEncounters_SM.cpp:6"
+   },
+   "notes": "Server only. Replaces the special-encounter list. Non-array -> `{name} Must Be a JSON Array`.",
+   "src": "CustomDifficulty2/Modules/SpecialEncounters.cpp:54"
+  },
+  "TM2": {
+   "type": "object",
+   "fields": {
+    "Value1": {
+     "type": "float",
+     "default": 5.0,
+     "src": "CustomDifficulty2/Modules/TestModules/TM2.cpp:139"
+    },
+    "Value2": {
+     "type": "string",
+     "default": 3.1,
+     "notes": "default JSON gives 3.1 (a number), which would be a type error for a string value",
+     "src": "CustomDifficulty2/Modules/TestModules/TM2.cpp:141"
+    }
+   },
+   "unknown": "error",
+   "default": {
+    "Value1": 5.0,
+    "Value2": 3.1
+   },
+   "notes": "unknown key -> error `Unrecognized Field \"X\"`; non-object -> `State must be a JSON Map`. Also spawns an EnemyScaler on enemy spawn.",
+   "src": "CustomDifficulty2/Modules/TestModules/TM2.cpp:43",
+   "test": true
+  },
+  "TM3": {
+   "type": "object",
+   "fields": {
+    "Value1": {
+     "type": "float",
+     "default": 5.0,
+     "notes": "MinUpdateInterval 0.1",
+     "src": "CustomDifficulty2/Modules/TestModules/TM3.cpp:243"
+    },
+    "Value2": {
+     "type": "float",
+     "default": 3.1,
+     "src": "CustomDifficulty2/Modules/TestModules/TM3.cpp:245"
+    },
+    "Bool": {
+     "type": "bool",
+     "src": "CustomDifficulty2/Modules/TestModules/TM3.cpp:247"
+    },
+    "StringList": {
+     "type": "stringlist",
+     "src": "CustomDifficulty2/Modules/TestModules/TM3.cpp:249"
+    }
+   },
+   "unknown": "error",
+   "default": {
+    "Value1": 5.0,
+    "Value2": 3.1
+   },
+   "notes": "unknown key -> error `Unrecognized Field \"X\"`; non-object -> `State must be a JSON Map`.",
+   "src": "CustomDifficulty2/Modules/TestModules/TM3.cpp:202",
+   "test": true
+  },
+  "TM4": {
+   "type": "map",
+   "values": {
+    "type": "float",
+    "notes": "every key becomes a logged float value",
+    "src": "CustomDifficulty2/Modules/TestModules/TM4.cpp:50"
+   },
+   "unknown": "n/a (free keys)",
+   "default": {
+    "Value1": 5.0,
+    "Value2": 3.1
+   },
+   "notes": "non-object -> `State must be a JSON Map`.",
+   "src": "CustomDifficulty2/Modules/TestModules/TM4.cpp:20",
+   "test": true
+  },
+  "TestModule": {
+   "type": "rawnumber",
+   "notes": "logs the number; non-number -> `State must be a number`",
+   "src": "CustomDifficulty2/Modules/TestModules/TestModule.cpp:18",
+   "test": true
+  },
+  "Vars": {
+   "type": "map",
+   "values": {
+    "type": "oneof",
+    "notes": "Each variable is an object whose raw string \"Type\" picks the submodule. Missing Type -> `\"Type\" required`; non-string Type -> `'Type' must be a string`; other Type -> `Unrecognized Type`; variable not an object -> `{name} Must Be a JSON Map`. The variable name (map key) is what {\"Var\": name} mutators read (via CD2_VariableMonitor).",
+    "options": [
+     {
+      "type": "object",
+      "fields": {
+       "Type": {
+        "type": "rawstring",
+        "enum": [
+         "Float",
+         "Boolean",
+         "String",
+         "Strings"
+        ],
+        "notes": "selects the variable kind; consumed by Vars itself, accepted (ignored) by the submodule",
+        "src": "CustomDifficulty2/Modules/Vars.cpp:169",
+        "required": true
+       },
+       "Value": {
+        "type": "float",
+        "notes": "required: missing -> error `\"Value\" required`; MinUpdateInterval 0.5, not server-only, replicated",
+        "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_FloatVariable.cpp:46",
+        "required": true
+       },
+       "Watch": {
+        "type": "bool",
+        "notes": "true -> shows the variable in the on-screen watch UI (WatchUI)",
+        "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_FloatVariable.cpp:46"
+       }
+      },
+      "unknown": "error",
+      "notes": "Float (\"Type\": \"Float\") variable (CD2_SM_FloatVariable). unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+      "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_FloatVariable.cpp:6"
+     },
+     {
+      "type": "object",
+      "fields": {
+       "Type": {
+        "type": "rawstring",
+        "enum": [
+         "Float",
+         "Boolean",
+         "String",
+         "Strings"
+        ],
+        "notes": "selects the variable kind; consumed by Vars itself, accepted (ignored) by the submodule",
+        "src": "CustomDifficulty2/Modules/Vars.cpp:169",
+        "required": true
+       },
+       "Value": {
+        "type": "bool",
+        "notes": "required: missing -> error `\"Value\" required`; MinUpdateInterval 0.5, not server-only, replicated",
+        "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_BooleanVariable.cpp:46",
+        "required": true
+       },
+       "Watch": {
+        "type": "bool",
+        "notes": "true -> shows the variable in the on-screen watch UI (WatchUI)",
+        "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_BooleanVariable.cpp:46"
+       }
+      },
+      "unknown": "error",
+      "notes": "Boolean (\"Type\": \"Boolean\") variable (CD2_SM_BooleanVariable). unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+      "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_BooleanVariable.cpp:6"
+     },
+     {
+      "type": "object",
+      "fields": {
+       "Type": {
+        "type": "rawstring",
+        "enum": [
+         "Float",
+         "Boolean",
+         "String",
+         "Strings"
+        ],
+        "notes": "selects the variable kind; consumed by Vars itself, accepted (ignored) by the submodule",
+        "src": "CustomDifficulty2/Modules/Vars.cpp:169",
+        "required": true
+       },
+       "Value": {
+        "type": "string",
+        "notes": "required: missing -> error `\"Value\" required`; MinUpdateInterval 0.5, not server-only, replicated",
+        "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_StringVariable.cpp:46",
+        "required": true
+       },
+       "Watch": {
+        "type": "bool",
+        "notes": "true -> shows the variable in the on-screen watch UI (WatchUI)",
+        "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_StringVariable.cpp:46"
+       }
+      },
+      "unknown": "error",
+      "notes": "String (\"Type\": \"String\") variable (CD2_SM_StringVariable). unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+      "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_StringVariable.cpp:6"
+     },
+     {
+      "type": "object",
+      "fields": {
+       "Type": {
+        "type": "rawstring",
+        "enum": [
+         "Float",
+         "Boolean",
+         "String",
+         "Strings"
+        ],
+        "notes": "selects the variable kind; consumed by Vars itself, accepted (ignored) by the submodule",
+        "src": "CustomDifficulty2/Modules/Vars.cpp:169",
+        "required": true
+       },
+       "Value": {
+        "type": "stringlist",
+        "notes": "required: missing -> error `\"Value\" required`; MinUpdateInterval 0.5, not server-only, replicated",
+        "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_StringsVariable.cpp:46",
+        "required": true
+       },
+       "Watch": {
+        "type": "bool",
+        "notes": "true -> shows the variable in the on-screen watch UI (WatchUI)",
+        "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_StringsVariable.cpp:46"
+       }
+      },
+      "unknown": "error",
+      "notes": "String list (\"Type\": \"Strings\") variable (CD2_SM_StringsVariable). unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+      "src": "CustomDifficulty2/ModuleComponents/Variables/CD2_SM_StringsVariable.cpp:6"
+     }
+    ],
+    "src": "CustomDifficulty2/Modules/Vars.cpp:141"
+   },
+   "unknown": "n/a (keys are free variable names)",
+   "notes": "Map of variable name -> variable definition. Non-object -> `{name} Must Be a JSON Map`. Needs the CD2_VariableMonitor (Enable silently does nothing without it). GetDefaultState null.",
+   "src": "CustomDifficulty2/Modules/Vars.cpp:47"
+  },
+  "Warnings": {
+   "type": "object",
+   "fields": {
+    "Banned": {
+     "type": "array",
+     "items": {
+      "type": "rawstring",
+      "notes": "non-string -> `Banned warnings must be strings`",
+      "src": "CustomDifficulty2/Modules/Warnings.cpp:132"
+     },
+     "notes": "raw array (not mutatable). Each string is compared with GetDisplayName of a mission's MissionMutator and of each MissionWarning (asset names); matches are removed from all current missions. Non-array -> `Banned must be an array`.",
+     "src": "CustomDifficulty2/Modules/Warnings.cpp:96"
+    }
+   },
+   "unknown": "error",
+   "notes": "unknown key -> error `Unrecognized Field 'X'`; non-object -> `Warnings must be an object`.",
+   "src": "CustomDifficulty2/Modules/Warnings.cpp:47"
+  },
+  "Watchers": {
+   "type": "object",
+   "fields": {
+    "Visible": {
+     "type": "bool",
+     "default": true,
+     "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleMain.cpp:53"
+    },
+    "X": {
+     "type": "float",
+     "default": 100,
+     "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleMain.cpp:55"
+    },
+    "Y": {
+     "type": "float",
+     "default": 300,
+     "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleMain.cpp:57"
+    },
+    "W": {
+     "type": "float",
+     "default": 200,
+     "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleMain.cpp:59"
+    },
+    "H": {
+     "type": "float",
+     "default": 300,
+     "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleMain.cpp:61"
+    },
+    "Values": {
+     "type": "map",
+     "unknown": "n/a (free keys = labels)",
+     "values": {
+      "type": "object",
+      "fields": {
+       "Boolean": {
+        "type": "bool",
+        "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleValue.cpp:38"
+       },
+       "Float": {
+        "type": "float",
+        "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleValue.cpp:40"
+       }
+      },
+      "unknown": "error",
+      "notes": "object holding one watched value under \"Boolean\" or \"Float\"; other key -> `Unknown mutator type 'X'`; non-object -> `Expected a Map`.",
+      "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleValue.cpp:6"
+     },
+     "notes": "label -> watched value, shown in the on-screen WatchersUI",
+     "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleMain.cpp:63"
+    }
+   },
+   "unknown": "error",
+   "notes": "unknown key -> `Unknown field 'X'`; non-object -> `Expected a Map`. Defaults are the GetXValueOrDefault fallbacks (lines 178-184).",
+   "src": "CustomDifficulty2/ModuleComponents/Watchers/Watchers_SubmoduleMain.cpp:6",
+   "test": true
+  },
+  "WaveSpawners": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "fields": {
+     "Enabled": {
+      "type": "bool",
+      "notes": "required",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:228",
+      "required": true
+     },
+     "Name": {
+      "type": "rawany",
+      "notes": "accepted, ignored (label only)",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:230"
+     },
+     "Interval": {
+      "type": "float",
+      "default": 10,
+      "notes": "seconds between waves; required",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:232",
+      "required": true
+     },
+     "Enemies": {
+      "type": "stringlist",
+      "notes": "enemy descriptor names via ED registry; when absent the hazard's normal pool is used",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:234"
+     },
+     "Difficulty": {
+      "type": "float",
+      "default": 50,
+      "notes": "required",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:236",
+      "required": true
+     },
+     "Distance": {
+      "type": "float",
+      "default": 1500,
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:238"
+     },
+     "Diversity": {
+      "type": "float",
+      "default": 50,
+      "notes": "only with Enemies, else error `\"Diversity\" only supported when \"Enemies\" is set.`",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:240"
+     },
+     "Locations": {
+      "type": "float",
+      "default": 1,
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:242"
+     },
+     "SpawnOnEnable": {
+      "type": "bool",
+      "notes": "class default false (WaveSpawner_SM.h:16)",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:244"
+     },
+     "UnlockInterval": {
+      "type": "bool",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:246"
+     },
+     "PauseOnDisable": {
+      "type": "bool",
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:248"
+     },
+     "Alert": {
+      "type": "bool",
+      "default": true,
+      "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:250"
+     }
+    },
+    "unknown": "error",
+    "notes": "WaveSpawner_SM; all values server-only, MinUpdateInterval 0.5. Missing any of Enabled/Interval/Difficulty -> `Missing Required Field \"X\"` (RequiredValues, WaveSpawner_SM.h:10). unknown key -> error `Unrecognized Field \"X\"`; non-object -> error `{name} Must Be a JSON Map` ({name} is left empty, so the text is \" Must Be a JSON Map\").",
+    "src": "CustomDifficulty2/ModuleComponents/WaveSpawners/WaveSpawner_SM.cpp:170"
+   },
+   "notes": "Server only. Non-array -> `{name} Must Be a JSON Array`.",
+   "src": "CustomDifficulty2/Modules/WaveSpawners.cpp:58"
+  }
+ }
+}

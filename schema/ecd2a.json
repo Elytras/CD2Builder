@@ -1,0 +1,132 @@
+{
+  "extends": "cd2",
+  "about": "ECD2A (Elytras' CD2 addon): a CD2 module named ElytrasAddon, cooked at /Game/_AssemblyStorm/CustomDifficulty2/Modules/ElytrasAddon, so CD2 finds it by asset name like its own modules. Read off ue-mods BpMods/ECD2A/UElytrasAddon.cpp (src lines below are that file). Keys are looked up in an FString TMap (case-insensitive). Parsing stops at the first error of a system.",
+  "source": "ue-mods BpMods/ECD2A @ a406b94a",
+  "defs": {
+    "Vector": {
+      "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:358",
+      "notes": "Each axis optional; an axis left out keeps the actor's own.",
+      "fields": {"X": {"type": "float"}, "Y": {"type": "float"}, "Z": {"type": "float"}}
+    },
+    "Rotator": {
+      "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:392",
+      "fields": {"Pitch": {"type": "float"}, "Yaw": {"type": "float"}, "Roll": {"type": "float"}}
+    },
+    "FloatMap": {"type": "map", "values": {"type": "float"}, "unknown": "ignored", "src": "UElytrasAddon.cpp:558"},
+    "TeleporterIteration": {
+      "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:188",
+      "when": [{"field": "Type", "in": ["Swapper", "Puller"], "require": "DestinationPool", "error": "A {value} teleporter needs a DestinationPool"}],
+      "notes": "Errors: 'Teleporter needs a TargetPool'; a literal Type Swapper/Puller with no DestinationPool: 'A <Type> teleporter needs a DestinationPool'. Pool formulas: set algebra over Self, Target, Damaged, AllTargets, AllDamaged, All with + - & and parentheses (DESIGN-teleporter-formulas.md); a literal formula is compiled at load.",
+      "fields": {
+        "Type": {"type": "string", "enum": ["Normal", "Swapper", "Puller"], "src": "UElytrasAddon.cpp:208"},
+        "TargetPool": {"type": "string", "required": true, "format": "poolformula", "src": "UElytrasAddon.cpp:214"},
+        "DestinationPool": {"type": "string", "format": "poolformula", "notes": "Needed by Swapper and Puller.", "src": "UElytrasAddon.cpp:221"},
+        "LivenessCondition": {"type": "string", "enum": ["Alive", "Dead", "Any"], "default": "Any", "src": "UElytrasAddon.cpp:228"},
+        "DamageCondition": {"type": "string", "enum": ["Melee", "Ranged", "Any"], "default": "Any", "src": "UElytrasAddon.cpp:248"},
+        "ProjectileCondition": {"type": "string", "enum": ["DamageOnly", "CollisionOnly", "Any"], "default": "DamageOnly", "src": "UElytrasAddon.cpp:255"},
+        "DamageThreshold": {"type": "float", "notes": "Per hit.", "src": "UElytrasAddon.cpp:237"},
+        "Timing": {
+          "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:329",
+          "fields": {"DelayBeforeDecision": {"type": "float"}, "DelayBeforeTeleport": {"type": "float"}}
+        },
+        "TransformRules": {
+          "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:467",
+          "fields": {"ApplyRotation": {"type": "bool"}, "ApplyScale": {"type": "bool"}, "ApplyTranslation": {"type": "bool"}, "IsRelative": {"type": "bool"}}
+        },
+        "Transform": {
+          "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:432",
+          "fields": {"Translation": {"ref": "Vector"}, "Rotation": {"ref": "Rotator"}, "Scale": {"ref": "Vector"}}
+        },
+        "ScaleBounds": {
+          "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:285",
+          "notes": "Clamps a Normal teleport's scale per axis when ApplyScale is on.",
+          "fields": {"Min": {"ref": "Vector"}, "Max": {"ref": "Vector"}}
+        },
+        "CancelCondition": {
+          "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:508",
+          "fields": {
+            "OnTargetDeath": {"type": "bool"}, "OnTargetDamage": {"type": "bool"},
+            "OnAttackerDeath": {"type": "bool"}, "OnAttackerDamage": {"type": "bool"},
+            "OnAttackerStun": {"type": "bool"}, "OnAttackerFreeze": {"type": "bool"},
+            "AttackerDamageThreshold": {"type": "float", "notes": "0 = any damage."},
+            "TimeThreshold": {"type": "float"}
+          }
+        },
+        "NextIteration": {"ref": "TeleporterIteration", "src": "UElytrasAddon.cpp:263"}
+      }
+    },
+    "EnemyKeys": {
+      "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:100",
+      "notes": "Applied on the host by UEnemyHandler, up to 0.5 s after the spawn (EMM's EnemyMonitor). Without EMM nothing applies; without EEE the EEE keys (Carver, Drunker, Spawner, Warden) do nothing.",
+      "fields": {
+        "Scale": {"ref": "Vector", "notes": "Replicated (SetReplicatedScale)."},
+        "Material": {
+          "type": "map", "keys": "All or a slot number", "values": {"type": "stringlist"}, "unknown": "error",
+          "notes": "A list picks one name at random per slot.", "src": "UElytrasAddon.cpp:575"
+        },
+        "Projectile": {"type": "stringlist", "notes": "One class for every attack, or entry i for attack i (the last repeats). A CD2 projectile registry name, or a class path when it has a '/'.", "src": "UElytrasAddon.cpp:114"},
+        "Resistances": {
+          "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:117",
+          "notes": "Multiplier per stat; the PST modifier becomes 1 - multiplier (Damage as is).",
+          "fields": {"Explosion": {"type": "float"}, "Kinetic": {"type": "float"}, "Piercing": {"type": "float"}, "Physical": {"type": "float"}, "InternalDamage": {"type": "float"}, "Corrosive": {"type": "float"}, "Electric": {"type": "float"}, "Poison": {"type": "float"}, "Radiation": {"type": "float"}, "Fire": {"type": "float"}, "Cold": {"type": "float"}, "Damage": {"type": "float"}}
+        },
+        "MaxHealth": {"type": "float", "src": "UElytrasAddon.cpp:124"},
+        "HealthBar": {"type": "bool", "src": "UElytrasAddon.cpp:127"},
+        "ArmorHealth": {"type": "float", "src": "UElytrasAddon.cpp:130"},
+        "Movement": {"ref": "FloatMap", "notes": "DeepPathfinderMovement field names; not checked at load."},
+        "Lights": {"type": "object", "unknown": "error", "fields": {"Intensity": {"type": "float"}, "AttenuationRadius": {"type": "float"}}, "src": "UElytrasAddon.cpp:136"},
+        "Leech": {"ref": "FloatMap", "notes": "Cave leech field names; not checked at load."},
+        "Name": {"type": "string", "src": "UElytrasAddon.cpp:142"},
+        "Carver": {"type": "object", "unknown": "error", "fields": {"Diameter": {"type": "float"}}, "src": "UElytrasAddon.cpp:640"},
+        "Drunker": {"type": "bool", "src": "UElytrasAddon.cpp:148"},
+        "Spawner": {
+          "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:591",
+          "fields": {
+            "Projectile": {"type": "object", "unknown": "error", "fields": {"Enemy": {"type": "string"}, "Count": {"type": "float"}}},
+            "Normal": {"ref": "FloatMap", "notes": "descriptor -> weight"},
+            "Burning": {"ref": "FloatMap", "notes": "descriptor -> weight"},
+            "Frozen": {"ref": "FloatMap", "notes": "descriptor -> weight"}
+          }
+        },
+        "Warden": {
+          "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:622",
+          "fields": {
+            "Enemies": {"ref": "FloatMap", "notes": "descriptor -> weight"},
+            "MinSpawn": {"type": "float"}, "MaxSpawn": {"type": "float"}, "BuffCount": {"type": "float"},
+            "BuffRadius": {"type": "float"}, "SpawnRadius": {"type": "float"}
+          }
+        },
+        "Teleporter": {
+          "type": "oneof", "src": "UElytrasAddon.cpp:172",
+          "notes": "One chain, or an array of chains: a hit fires the first chain whose conditions it meets.",
+          "options": [{"ref": "TeleporterIteration"}, {"type": "array", "items": {"ref": "TeleporterIteration"}}]
+        }
+      }
+    }
+  },
+  "modules": {
+    "ElytrasAddon": {
+      "type": "object", "unknown": "error", "src": "UElytrasAddon.cpp:49",
+      "notes": "Unknown system -> 'Unknown system: X'.",
+      "fields": {
+        "Enemies": {
+          "type": "map", "keys": "an enemy name CD2 knows: a key of this difficulty's Enemies, or a descriptor asset name (ED_Spider_ShieldTank_Fire)",
+          "values": {"ref": "EnemyKeys"}, "src": "UElytrasAddon.cpp:88"
+        }
+      }
+    }
+  },
+  "status": {
+    "done": [
+      "Every per-enemy key ECD2A parses today (EEnemySubsystems in ECD2A.h), with its type and choices.",
+      "Teleporter chains with NextIteration, conditions, timing, transform, scale bounds and cancel conditions.",
+      "Pool formula syntax checked at edit time, as ECD2A compiles a literal formula at load."
+    ],
+    "open": [
+      "Custom weapons (weapon and upgrade stats from the difficulty): not designed yet (ue-mods TODO.md, 'ECD2A - custom weapons'). A new system beside Enemies.",
+      "Movement and Leech field names: ECD2A sets them by name and does not check them; the builder accepts any name until a list is pinned.",
+      "Enemy names under Enemies are not checked against CD2's registry plus the difficulty's own Enemies keys yet.",
+      "The EEE merge's release name (ECD2A + EEE become one mod): the module key may change with it."
+    ]
+  }
+}

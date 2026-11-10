@@ -1,0 +1,1604 @@
+{
+ "mutators": {
+  "Accumulate": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Value": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Added on every evaluation",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Accumulate.cpp:38"
+    },
+    "Min": {
+     "type": "float",
+     "required": false,
+     "notes": "Clamp floor (none if absent)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Accumulate.cpp:33"
+    },
+    "Max": {
+     "type": "float",
+     "required": false,
+     "notes": "Clamp ceiling (none if absent)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Accumulate.cpp:28"
+    },
+    "Initial": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Starting value (first evaluation)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Accumulate.cpp:23"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"\\\"\" (field name passed empty, Accumulate.cpp:20). Per-evaluation sum, desired update interval 1 s, not scaled by elapsed time.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Time/Accumulate.cpp:6"
+  },
+  "ByBiome": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": false,
+     "notes": "Option used when the current biome has no entry. Required unless >= 9 biome entries are given; then the CrystalCaves option is the default (null if CrystalCaves itself is the one missing). Error: \"Default Must be set unless all biomes are specified\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByBiome.cpp:45"
+    }
+   },
+   "extra": {
+    "type": "option",
+    "required": false,
+    "enum": [
+     "AzureWeald",
+     "CrystalCaves",
+     "CrystallineCaverns",
+     "FungusBogs",
+     "HollowBough",
+     "IceCaves",
+     "GlacialStrata",
+     "MagmaCaves",
+     "MagmaCore",
+     "SandblastedCorridors",
+     "Sandblasted",
+     "RadioactiveExclusionZone",
+     "RadioactiveZone",
+     "REZ",
+     "SaltCaves",
+     "SaltPits",
+     "LushDownpour",
+     "Biozone",
+     "DenseBiozone"
+    ],
+    "notes": "Key = biome name or alias (see enums.BiomeKey); several aliases map to one biome, the last one read wins. Keys are looked up in a TMap<FString> (case-insensitive). Unknown key -> error \"Unrecognized Biome '<key>'\"",
+    "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByBiome.cpp:24"
+   },
+   "unknown": "error",
+   "notes": "Selects on the PLS Biome object's name (BIOME_*). 'Mutate' is skipped by the base ConfigureMutator.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByBiome.cpp:15"
+  },
+  "ByDDStage": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": true,
+     "notes": "Used outside a deep dive (MissionStructure 0) and for missing stages. Error if absent: \"'Default' Value must be set\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:265"
+    },
+    "Stage1": {
+     "type": "option",
+     "required": false,
+     "notes": "Deep dive mission index 0",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:47"
+    },
+    "Stage2": {
+     "type": "option",
+     "required": false,
+     "notes": "Deep dive mission index 1 AND index 2",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:42"
+    },
+    "Stage3": {
+     "type": "option",
+     "required": false,
+     "notes": "Parsed, but never selected: index 2 returns Stage2Mutator (bug at ByDDStage.cpp:37)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:171"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (ByDDStage.cpp:147). Keys matched case-insensitively (SwitchString/StriStri).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDDStage.cpp:62"
+  },
+  "ByDNA": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": true,
+     "notes": "Error if absent: \"'Default' must be set\" (ByDNA.cpp:262)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDNA.cpp:233"
+    }
+   },
+   "extra": {
+    "type": "option",
+    "required": false,
+    "notes": "Key = mission DNA \"<type>,<length>,<complexity>\": comma-separated, each part trimmed and lowercased; type in enums.DNAMissionType (or 'x' = any), length/complexity 1..3 or 'x'; missing trailing parts = 'x'; 4+ parts or a bad part -> error \"Invalid Mission DNA: <key>\". Lookup priority: type+len+comp, type+len, type+comp, len+comp, type, len, comp, then Default (ByDNA.cpp:300); a key 'x,x,x' is never looked up.",
+    "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDNA.cpp:66"
+   },
+   "unknown": "error",
+   "notes": "Length/complexity come from GeneratedMission DNA NumberOfDots.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDNA.cpp:199"
+  },
+  "ByEscortPhase": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": true,
+     "notes": "Used when the monitor state is invalid or has no option. Error if absent: \"The Default value must be set.\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByEscortPhase.cpp:47"
+    }
+   },
+   "extra": {
+    "type": "option",
+    "required": false,
+    "enum": "enums.EscortPhase",
+    "notes": "Key = a EscortPhase name (enum display name, looked up case-insensitively). Unknown key -> error \"Unrecognized Escort State <key>\"",
+    "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByEscortPhase.cpp:53"
+   },
+   "unknown": "error",
+   "notes": "If the monitor cannot be obtained Validate returns invalid with no message -> base adds \"Unspecified Mutator Error\". StringToEnum built from the first 9 enumerators.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByEscortPhase.cpp:35"
+  },
+  "ByMissionComplexity": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Values": {
+     "type": "array",
+     "required": true,
+     "items": {
+      "type": "option",
+      "notes": "An option: any mutator/literal of the type the enclosing value expects (OptionsBaseClass, set by the factory from the parent's base type)"
+     },
+     "notes": "Exactly 3 options, indexed by mission Complexity dots - 1 (min 0). Key compared case-SENSITIVELY (EqualEqual_StrStr). Errors: \"Values must be a list\", \"Values must be a list with 3 elements\", absent -> \"The field Values must be set\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionComplexity.cpp:38"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Any other key -> error \"Only the field Values is expected.\"",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionComplexity.cpp:15"
+  },
+  "ByMissionDuration": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Values": {
+     "type": "array",
+     "required": true,
+     "items": {
+      "type": "option",
+      "notes": "An option: any mutator/literal of the type the enclosing value expects (OptionsBaseClass, set by the factory from the parent's base type)"
+     },
+     "notes": "Exactly 3 options, indexed by mission Duration dots - 1 (min 0). Key compared case-SENSITIVELY (EqualEqual_StrStr). Errors: \"Values must be a list\", \"Values must be a list with 3 elements\", absent -> \"The field Values must be set\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionDuration.cpp:38"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Any other key -> error \"Only the field Values is expected.\"",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionDuration.cpp:15"
+  },
+  "ByMissionType": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": false,
+     "notes": "Required unless all 9 mission types are given (then the Mining option is the default). Error: \"Either Provide a 'Default' or set all mission types\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionType.cpp:137"
+    }
+   },
+   "extra": {
+    "type": "option",
+    "required": false,
+    "enum": "enums.MissionType",
+    "notes": "Key = mission type name (TSet lookup, case-insensitive). Unknown key -> error \"Unexpected field \\\"<key>\\\"\"",
+    "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionType.cpp:91"
+   },
+   "unknown": "error",
+   "notes": "Current type from the FSD game mode class (GM_*_C -> name, enums.MissionType); unknown game mode -> Default.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionType.cpp:35"
+  },
+  "ByRefineryPhase": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": true,
+     "notes": "Used when the monitor state is invalid or has no option. Error if absent: \"The Default value must be set.\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByRefineryPhase.cpp:47"
+    }
+   },
+   "extra": {
+    "type": "option",
+    "required": false,
+    "enum": "enums.RefineryPhase",
+    "notes": "Key = a RefineryPhase name (enum display name, looked up case-insensitively). Unknown key -> error \"Unrecognized Refinery State <key>\"",
+    "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByRefineryPhase.cpp:53"
+   },
+   "unknown": "error",
+   "notes": "If the monitor cannot be obtained Validate returns invalid with no message -> base adds \"Unspecified Mutator Error\". StringToEnum built from the first 8 enumerators.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByRefineryPhase.cpp:35"
+  },
+  "ByResuppliesCalled": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Values": {
+     "type": "array",
+     "required": false,
+     "items": {
+      "type": "option",
+      "notes": "An option: any mutator/literal of the type the enclosing value expects (OptionsBaseClass, set by the factory from the parent's base type)"
+     },
+     "notes": "Raw JSON array; option i is used after i resupplies were called (index clamped to the last). Error if not an array: \"Field 'Values' must be an array\". Not checked for presence (unclear what an empty list does: Select returns no option)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Resupply/ByResuppliesCalled.cpp:73"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (ByResuppliesCalled.cpp:69). Selects only on the server.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Resupply/ByResuppliesCalled.cpp:6"
+  },
+  "BySaboPhase": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": true,
+     "notes": "Used when the monitor state is invalid or has no option. Error if absent: \"The Default value must be set.\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySaboPhase.cpp:47"
+    }
+   },
+   "extra": {
+    "type": "option",
+    "required": false,
+    "enum": "enums.SaboPhase",
+    "notes": "Key = a SaboPhase name (enum display name, looked up case-insensitively). Unknown key -> error \"Unrecognized Sabo State <key>\"",
+    "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySaboPhase.cpp:53"
+   },
+   "unknown": "error",
+   "notes": "If the monitor cannot be obtained Validate returns invalid with no message -> base adds \"Unspecified Mutator Error\". StringToEnum built from the first 11 enumerators.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySaboPhase.cpp:35"
+  },
+  "BySalvagePhase": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": true,
+     "notes": "Error if absent: \"The Default value must be set.\" Used when not a salvage mission or the phase has no option.",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySalvagePhase.cpp:79"
+    }
+   },
+   "extra": {
+    "type": "option",
+    "required": false,
+    "enum": "enums.SalvagePhase",
+    "notes": "Key = salvage phase (TSet ValidStates, case-insensitive). Unknown -> error \"Unrecognized Salvage State <key>\"",
+    "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySalvagePhase.cpp:85"
+   },
+   "unknown": "error",
+   "notes": "Phase computed from OBJ_1st_Salvage (BySalvagePhase.cpp:6): Mules while ActorsSalvaged < ActorsToSalvage (or ActorsToSalvage == 0); then Uplink / Refuel while that defense event's Progress < 1; else PointsRepaired 0 -> PreUplink, 1 -> PreRefuel, else Finished.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySalvagePhase.cpp:69"
+  },
+  "BySecondary": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Default": {
+     "type": "option",
+     "required": true,
+     "notes": "Error if absent: \"A 'Default' must be provided\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.cpp:172"
+    },
+    "Dump": {
+     "type": "rawany",
+     "required": false,
+     "notes": "Value ignored; logs every Objective class name at Error level (PrintAllSecondaries)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.cpp:168"
+    }
+   },
+   "extra": {
+    "type": "option",
+    "required": false,
+    "enum": "enums.SecondaryObjective",
+    "notes": "Key = objective class name, with or without the _C suffix. Unknown -> error \"Unrecognized Secondary \\\"<key>\\\"\"",
+    "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.cpp:284"
+   },
+   "unknown": "error",
+   "notes": "Picks the first configured objective (map order) present among the current secondary objectives, else Default.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.cpp:67"
+  },
+  "ByTime": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "InitialValue": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/ByTime.cpp:81"
+    },
+    "StartDelay": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/ByTime.cpp:76"
+    },
+    "RateOfChange": {
+     "type": "float",
+     "required": false,
+     "default": 1,
+     "notes": "Per second",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/ByTime.cpp:71"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). Value = InitialValue + RateOfChange * max(t - StartDelay, 0), t = mission time (0 until synced).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Time/ByTime.cpp:57"
+  },
+  "ChooseNEnemies": {
+   "returns": "stringlist",
+   "base": "CD2_StringList_Mutator",
+   "params": {
+    "EDs": {
+     "type": "stringlist",
+     "required": true,
+     "notes": "Candidate descriptor names. Error if absent: \"EDs must be set\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/ChooseNEnemies.cpp:30"
+    },
+    "N": {
+     "type": "float",
+     "required": false,
+     "default": 1,
+     "notes": "How many to pick (truncated)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/ChooseNEnemies.cpp:25"
+    },
+    "Lock": {
+     "type": "bool",
+     "required": false,
+     "notes": "While true, the last pick is reused (one draw per lock period)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/ChooseNEnemies.cpp:20"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). If |EDs| <= N returns EDs unchanged; else a weighted draw without replacement, weight = 1/Rarity from the ED registry (unregistered EDs weight 0).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/ChooseNEnemies.cpp:6"
+  },
+  "Countdown": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Enable": {
+     "type": "bool",
+     "required": true,
+     "notes": "Countdown runs while true; restarts when it turns true again",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Countdown.cpp:91"
+    },
+    "Start": {
+     "type": "float",
+     "required": true,
+     "notes": "Seconds to count down from",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Countdown.cpp:101"
+    },
+    "Stop": {
+     "type": "float",
+     "required": false,
+     "default": 1,
+     "notes": "Floor of the countdown",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Countdown.cpp:96"
+    },
+    "Default": {
+     "type": "float",
+     "required": false,
+     "notes": "Value while disabled; defaults to Stop",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Countdown.cpp:86"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). Missing Enable or Start -> error \"Enable and Start options are required.\". Enabled: trunc(max(Stop, Start - seconds since enabled)); disabled: trunc(Default).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Time/Countdown.cpp:69"
+  },
+  "DefenseProgress": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No options allowed for this Mutator\". Progress of the first AEVENT_DropPodDefense_Base with Progress < 1, else 0.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DefenseProgress.cpp:6"
+  },
+  "Delta": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Value": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Delta.cpp:22"
+    },
+    "Smoothing": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Exponential smoothing alpha = 1/(max(Smoothing,0)+1)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Delta.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). Change of Value since the previous evaluation, smoothed.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Time/Delta.cpp:6"
+  },
+  "DepositedResource": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Resource": {
+     "type": "string",
+     "required": true,
+     "enum": "enums.Resource",
+     "notes": "English name (enums.Resource keys) or the RES_* asset name; anything else counts 0. Error if absent: \"\\\"Resource\\\" must be specified\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Resources/DepositedResource.cpp:19"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Any other key -> error \"Only \\\"Resource\\\" value is allowed for this Mutator\". Team depository amount.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Resources/DepositedResource.cpp:6"
+  },
+  "DescriptorExists": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "ED": {
+     "type": "rawstring",
+     "required": false,
+     "notes": "Not mutatable. Error if not a string: \"ED Must be a String\". Absent -> \"\" -> false",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/DescriptorExists.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True if the name is registered in the ED registry.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/DescriptorExists.cpp:6"
+  },
+  "DistanceToDroppod": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Default": {
+     "type": "float",
+     "required": false,
+     "default": 14500,
+     "notes": "Returned when no escape droppod / no players",
+     "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DistanceToDroppod.cpp:27"
+    },
+    "IncludeDowned": {
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "notes": "Count downed dwarves in the average",
+     "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DistanceToDroppod.cpp:22"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Any other key -> error \"Only \\\"Default\\\" and \\\"IncludeDowned\\\" supported by this mutator.\". Average distance of the counted dwarves to the escape droppod (CD2_Player_Monitor.cpp:567).",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DistanceToDroppod.cpp:6"
+  },
+  "DrillerCount": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Drillers (BP_DrillerCharacter_C). Before mission time 60 s counted from the player array's SelectedCharacter, after from spawned characters (CD2_Player_Monitor.cpp:443).",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DrillerCount.cpp:6"
+  },
+  "DuringDefend": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "StartingAt": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds since the state began",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDefend.cpp:22"
+    },
+    "StoppingAfter": {
+     "type": "float",
+     "required": false,
+     "default": 10000,
+     "notes": "Seconds since the state began (inclusive range)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDefend.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True while wave script EWC_Salvage_Defend_C has run for StartingAt..StoppingAfter s.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDefend.cpp:6"
+  },
+  "DuringDread": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "StartingAt": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Parsed and evaluated but unused",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDread.cpp:22"
+    },
+    "StoppingAfter": {
+     "type": "float",
+     "required": false,
+     "default": 10000,
+     "notes": "Parsed and evaluated but unused",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDread.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True while any enums.DreadDescriptor has an active count > 0 (DuringDread.cpp:84).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDread.cpp:6"
+  },
+  "DuringDrillevator": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "StartingAt": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds since the state began",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDrillevator.cpp:22"
+    },
+    "StoppingAfter": {
+     "type": "float",
+     "required": false,
+     "default": 10000,
+     "notes": "Seconds since the state began (inclusive range)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDrillevator.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True while EWC_DeepScan_Drillevator_C has run for StartingAt..StoppingAfter s.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDrillevator.cpp:6"
+  },
+  "DuringEggAmbush": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "StartingAt": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds since the state began",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringEggAmbush.cpp:22"
+    },
+    "StoppingAfter": {
+     "type": "float",
+     "required": false,
+     "default": 10000,
+     "notes": "Seconds since the state began (inclusive range)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringEggAmbush.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True while EWC_EggHunt_Ambush_C has run for StartingAt..StoppingAfter s.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringEggAmbush.cpp:6"
+  },
+  "DuringEncounters": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True until FSDGameState OnMatchStarted fires (Mission monitor IsEncounters).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringEncounters.cpp:6"
+  },
+  "DuringExtraction": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "StartingAt": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds since the state began",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringExtraction.cpp:22"
+    },
+    "StoppingAfter": {
+     "type": "float",
+     "required": false,
+     "default": 10000,
+     "notes": "Seconds since the state began (inclusive range)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringExtraction.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True while any of EWC_EndMission_C / EWC_Escort_EndMission_C / EWC_Salvage_End_C / EWC_EndMission_MotherLode_C has run for StartingAt..StoppingAfter s.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringExtraction.cpp:6"
+  },
+  "DuringGenericSwarm": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "StartingAt": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds since the state began",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringGenericSwarm.cpp:22"
+    },
+    "StoppingAfter": {
+     "type": "float",
+     "required": false,
+     "default": 10000,
+     "notes": "Seconds since the state began (inclusive range)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringGenericSwarm.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True while EWC_Generic_C has run for StartingAt..StoppingAfter s.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringGenericSwarm.cpp:6"
+  },
+  "DuringMission": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "StartingAt": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds since the state began",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringMission.cpp:22"
+    },
+    "StoppingAfter": {
+     "type": "float",
+     "required": false,
+     "default": 10000,
+     "notes": "Seconds since the state began (inclusive range)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringMission.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True while mission time is within StartingAt..StoppingAfter s.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringMission.cpp:6"
+  },
+  "DuringPECountdown": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {
+    "StartingAt": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds since the state began",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringPECountdown.cpp:22"
+    },
+    "StoppingAfter": {
+     "type": "float",
+     "required": false,
+     "default": 10000,
+     "notes": "Seconds since the state began (inclusive range)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringPECountdown.cpp:17"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True while EWC_EndMission_MotherLode_C has run for StartingAt..min(StoppingAfter,140) s.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringPECountdown.cpp:6"
+  },
+  "DwarfCount": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Player count: spawned player characters once mission time >= 60 s and any exist, else the network player array size.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DwarfCount.cpp:6"
+  },
+  "DwarvesAmmo": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Average per-player AmmoPct; 1.0 with no players.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DwarvesAmmo.cpp:6"
+  },
+  "DwarvesDown": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Number of dwarves currently down.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DwarvesDown.cpp:6"
+  },
+  "DwarvesDownTime": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Max DownTime (seconds) over players; 0 with no players.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DwarvesDownTime.cpp:6"
+  },
+  "DwarvesDowns": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Cumulative downs this mission (monitor Downs counter).",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DwarvesDowns.cpp:6"
+  },
+  "DwarvesHealth": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Average per-player HealthPct; 1.0 with no players.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DwarvesHealth.cpp:6"
+  },
+  "DwarvesRevives": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Cumulative revives this mission (monitor Revives counter).",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DwarvesRevives.cpp:6"
+  },
+  "DwarvesShield": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Average per-player ShieldPct; 1.0 with no players.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/DwarvesShield.cpp:6"
+  },
+  "ElapsedExtraction": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No options allowed for this Mutator\". Max seconds elapsed in EWC_Salvage_End_C / EWC_EndMission_MotherLode_C / EWC_EndMission_C (escort's EWC_Escort_EndMission_C is NOT included, unlike DuringExtraction); 0 if none.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ElapsedExtraction.cpp:6"
+  },
+  "EnemiesKilled": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "ED": {
+     "type": "string",
+     "required": false,
+     "notes": "One descriptor name",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemiesKilled.cpp:27"
+    },
+    "EDs": {
+     "type": "stringlist",
+     "required": false,
+     "notes": "Several descriptor names, summed",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemiesKilled.cpp:22"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Only \\\"ED\\\" or \\\"EDs\\\" value is allowed for this Mutator\". ED and EDs together -> error \"Only ED or EDs may be set.\". Death count of ED / sum over EDs / all dead enemies if neither.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemiesKilled.cpp:6"
+  },
+  "EnemiesRecentlySpawned": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "ED": {
+     "type": "string",
+     "required": false,
+     "notes": "One descriptor name",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemiesRecentlySpawned.cpp:35"
+    },
+    "EDs": {
+     "type": "stringlist",
+     "required": false,
+     "notes": "Several descriptor names, summed",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemiesRecentlySpawned.cpp:30"
+    },
+    "Seconds": {
+     "type": "float",
+     "required": true,
+     "notes": "Window length. Error if absent: \"Seconds must be set.\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemiesRecentlySpawned.cpp:25"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Only \\\"ED\\\" or \\\"EDs\\\" and \\\"Seconds\\\" values are allowed for this Mutator\". ED and EDs together -> error \"Only ED or EDs may be set.\". Spawns within the last Seconds of ED / EDs / all if neither (monitor bins of 2 s).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemiesRecentlySpawned.cpp:6"
+  },
+  "EnemyCooldown": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "ED": {
+     "type": "rawstring",
+     "required": false,
+     "notes": "Not mutatable. Error if not a string: \"ED must be a string\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCooldown.cpp:111"
+    },
+    "EDs": {
+     "type": "array",
+     "required": false,
+     "items": {
+      "type": "rawstring"
+     },
+     "notes": "Not mutatable. Error: \"EDs must be an list of descriptors\". ED and EDs may both be given (appended).",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCooldown.cpp:72"
+    },
+    "CooldownTime": {
+     "type": "float",
+     "required": true,
+     "notes": "Seconds",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCooldown.cpp:67"
+    },
+    "ValueDuringCooldown": {
+     "type": "option",
+     "required": true,
+     "notes": "Option selected while any listed ED is on cooldown (spawned within CooldownTime)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCooldown.cpp:62"
+    },
+    "DefaultValue": {
+     "type": "option",
+     "required": true,
+     "notes": "Option selected otherwise",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCooldown.cpp:57"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unrecognized field \\\"<key>\\\"\". On the host: no ED/EDs -> \"Either ED or EDs must be set.\"; missing any of the three -> \"CooldownTime, ValueDuringCooldown, DefaultValue must all be set\" (checks skipped on clients).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCooldown.cpp:6"
+  },
+  "EnemyCount": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "ED": {
+     "type": "string",
+     "required": false,
+     "notes": "One descriptor name",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCount.cpp:27"
+    },
+    "EDs": {
+     "type": "stringlist",
+     "required": false,
+     "notes": "Several descriptor names, summed",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCount.cpp:22"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Only \\\"ED\\\" or \\\"EDs\\\" value is allowed for this Mutator\". ED and EDs together -> error \"Only ED or EDs may be set.\". Active count of ED / sum over EDs / all active enemies if neither.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyCount.cpp:6"
+  },
+  "EnemyDistance": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "ED": {
+     "type": "string",
+     "required": false,
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyDistance.cpp:43"
+    },
+    "EDs": {
+     "type": "stringlist",
+     "required": false,
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyDistance.cpp:38"
+    },
+    "Type": {
+     "type": "string",
+     "required": false,
+     "default": "Min",
+     "enum": [
+      "Min",
+      "Max",
+      "Average"
+     ],
+     "notes": "Compared case-insensitively; 'Min', 'Max', anything else = average",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyDistance.cpp:190"
+    },
+    "Default": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Returned when no matching enemies",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyDistance.cpp:28"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Only \\\"ED\\\" or \\\"EDs\\\" value is allowed for this Mutator\" (misleading text). Exactly one of ED / EDs required: \"Either ED or EDs must be set\". Per enemy: distance to the nearest alive player (within 100000).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyDistance.cpp:6"
+  },
+  "EnemyHealth": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "ED": {
+     "type": "string",
+     "required": false,
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyHealth.cpp:43"
+    },
+    "EDs": {
+     "type": "stringlist",
+     "required": false,
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyHealth.cpp:38"
+    },
+    "Type": {
+     "type": "string",
+     "required": false,
+     "default": "Average",
+     "enum": [
+      "Min",
+      "Max",
+      "Average"
+     ],
+     "notes": "'Min', 'Max', anything else = average",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyHealth.cpp:211"
+    },
+    "Default": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Returned when no matching enemies",
+     "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyHealth.cpp:33"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unsupported Field\". Exactly one of ED / EDs required: \"Either ED or EDs must be set\". Aggregates EnemyHealthComponent GetHealthPct.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyHealth.cpp:6"
+  },
+  "EngineerCount": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Engineers (BP_EngineerCharacter_C); see DrillerCount for timing.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/EngineerCount.cpp:6"
+  },
+  "GunnerCount": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Gunners (BP_GunnerCharacter_C); see DrillerCount for timing.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/GunnerCount.cpp:6"
+  },
+  "HeldResource": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Resource": {
+     "type": "string",
+     "required": true,
+     "enum": "enums.Resource",
+     "notes": "English name (enums.Resource keys) or the RES_* asset name; anything else counts 0. Error if absent: \"\\\"Resource\\\" must be specified\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Resources/HeldResource.cpp:19"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Any other key -> error \"Only \\\"Resource\\\" value is allowed for this Mutator\". Sum held in all players' inventories.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Resources/HeldResource.cpp:6"
+  },
+  "IWsLeft": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Number of players with HasIW (iron will available).",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/IWsLeft.cpp:6"
+  },
+  "IfOnSpaceRig": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Then": {
+     "type": "option",
+     "required": true,
+     "notes": "Selected on the space rig. Error if absent: \"Then Must Be Set\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/IfOnSpaceRig.cpp:107"
+    },
+    "Else": {
+     "type": "option",
+     "required": true,
+     "notes": "Selected elsewhere. Error if absent: \"Else Must Be Set\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/IfOnSpaceRig.cpp:79"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (IfOnSpaceRig.cpp:73).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/IfOnSpaceRig.cpp:6"
+  },
+  "MissionState": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". NAME COLLISION: two assets named MissionState. Mission/MissionState always returns 0 (stub, MissionState.cpp:42); DwarfState/MissionState returns the RemainingIWs count (same as IWsLeft, DwarfState/MissionState.cpp:43). The registry is a TMap keyed by asset name (CD2_Mod.cpp:324), so whichever the asset registry lists last wins - unclear which.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/MissionState.cpp:6"
+  },
+  "MuleDistanceToDroppod": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Default": {
+     "type": "float",
+     "required": false,
+     "default": 14500,
+     "notes": "Returned when the escape droppod or the escort mule is absent",
+     "src": "CustomDifficulty2/Mutators/Mutators/Mission/MuleDistanceToDroppod.cpp:19"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Any other key -> error \"Only \\\"Default\\\" supported by this mutator.\". Distance escape droppod <-> BP_Donkey. Two identical assets (Mission/ and DwarfState/) share this name.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/MuleDistanceToDroppod.cpp:6"
+  },
+  "ResuppliesCalled": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Resupply pods called this mission.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Resupply/ResuppliesCalled.cpp:6"
+  },
+  "ResupplyUsesConsumed": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Resupply uses taken.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Resupply/ResupplyUsesConsumed.cpp:6"
+  },
+  "ResupplyUsesLeft": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Uses remaining on existing pods.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Resupply/ResupplyUsesLeft.cpp:6"
+  },
+  "ScoutCount": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Scouts (BP_NavigatorCharacter_C); see DrillerCount for timing.",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/ScoutCount.cpp:6"
+  },
+  "SecondaryFinished": {
+   "returns": "bool",
+   "base": "CD2_Boolean_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). True when every non-primary objective IsCompleted (true if there are none).",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/SecondaryFinished.cpp:6"
+  },
+  "Sequence": {
+   "returns": "any(select)",
+   "base": "CD2_Select_Mutator",
+   "params": {
+    "Sequence": {
+     "type": "array",
+     "required": true,
+     "items": {
+      "type": "option",
+      "notes": "An option: any mutator/literal of the type the enclosing value expects (OptionsBaseClass, set by the factory from the parent's base type)"
+     },
+     "notes": "Raw JSON array. Errors: not an array -> \"Must Be An Array\"; empty/absent -> \"'Sequence' Must Be Set\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:87"
+    },
+    "Next": {
+     "type": "bool",
+     "required": false,
+     "notes": "Rising edge advances one step",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:82"
+    },
+    "Previous": {
+     "type": "bool",
+     "required": false,
+     "notes": "Rising edge goes back one step (cancels an advance in the same evaluation)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:77"
+    },
+    "Interval": {
+     "type": "float",
+     "required": false,
+     "notes": "Seconds per step; auto-advance",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:72"
+    },
+    "Repeat": {
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "notes": "Wrap at the ends; false = stick at the end",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:67"
+    },
+    "InitialOffset": {
+     "type": "float",
+     "required": false,
+     "notes": "Start index (truncated, clamped); also used on Reset",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:62"
+    },
+    "Reset": {
+     "type": "bool",
+     "required": false,
+     "notes": "While true: position back to InitialOffset (or 0)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:57"
+    },
+    "Shuffle": {
+     "type": "bool",
+     "required": false,
+     "notes": "Play a shuffled order, reshuffled on every wrap/reset",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:52"
+    },
+    "ShuffleOnce": {
+     "type": "bool",
+     "required": false,
+     "notes": "Play one fixed shuffled order",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:47"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). Shuffle and ShuffleOnce both present -> error \"'Shuffle' and 'ShuffleOnce' are mutually exclusive\".",
+   "src": "CustomDifficulty2/Mutators/Mutators/Time/Sequence.cpp:6"
+  },
+  "ShieldsLeft": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {},
+   "extra": null,
+   "unknown": "error",
+   "notes": "No params: Any key other than \"Mutate\" -> error \"No fields supported for this mutator.\". Sum of ChargeCapacity AmmoCount over all AShieldGeneratorItem (current team shield charges).",
+   "src": "CustomDifficulty2/Mutators/Mutators/DwarfState/ShieldsLeft.cpp:6"
+  },
+  "SquareWave": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Period": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds; 0 -> always Low",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/SquareWave.cpp:213"
+    },
+    "High": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/SquareWave.cpp:173"
+    },
+    "Low": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/SquareWave.cpp:133"
+    }
+   },
+   "extra": null,
+   "unknown": "ignored",
+   "notes": "High when sin(360 * t / Period) > 0 else Low, t = mission time. ConfigureMutator collects errors (unknown key -> \"Unexpected field \\\"\\\"\", wrong type -> \"Expected Float Value/Mutator\") but then returns Errors = {} (SquareWave.cpp:232): every error is silently dropped and the bad param stays 0.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Time/SquareWave.cpp:20"
+  },
+  "StopWatch": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Enable": {
+     "type": "bool",
+     "required": true,
+     "notes": "Time accumulates while true. Error if absent: \"'Enable' condition must be set.\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/StopWatch.cpp:46"
+    },
+    "Reset": {
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "notes": "While true the total is 0",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/StopWatch.cpp:41"
+    },
+    "AutoReset": {
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "notes": "Reset to 0 whenever Enable is false",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/StopWatch.cpp:36"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Unknown key -> error \"Unexpected field \\\"<key>\\\"\" (UnexpectedFieldError). Seconds accumulated while Enable is true.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Time/StopWatch.cpp:22"
+  },
+  "TimeDelta": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "InitialValue": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/TimeDelta.cpp:107"
+    },
+    "StartDelay": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Seconds",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/TimeDelta.cpp:103"
+    },
+    "RateOfChange": {
+     "type": "float",
+     "required": false,
+     "default": 0,
+     "notes": "Per second; defaults to 0 here (ByTime's default is 1)",
+     "src": "CustomDifficulty2/Mutators/Mutators/Time/TimeDelta.cpp:99"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Same formula as ByTime. Unknown key -> error \"Unexpected Mutator Field\"; 'Mutate' is compared case-SENSITIVELY here (TimeDelta.cpp:125). Stops at the first error.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Time/TimeDelta.cpp:20"
+  },
+  "TotalResource": {
+   "returns": "float",
+   "base": "CD2_Float_Mutator",
+   "params": {
+    "Resource": {
+     "type": "string",
+     "required": true,
+     "enum": "enums.Resource",
+     "notes": "English name (enums.Resource keys) or the RES_* asset name; anything else counts 0. Error if absent: \"\\\"Resource\\\" must be specified\"",
+     "src": "CustomDifficulty2/Mutators/Mutators/Resources/TotalResource.cpp:19"
+    }
+   },
+   "extra": null,
+   "unknown": "error",
+   "notes": "Any other key -> error \"Only \\\"Resource\\\" value is allowed for this Mutator\". Held + deposited.",
+   "src": "CustomDifficulty2/Mutators/Mutators/Resources/TotalResource.cpp:6"
+  }
+ },
+ "enums": {
+  "EscortPhase": {
+   "values": [
+    "InGarage",
+    "Stationary",
+    "Moving",
+    "WaitingForFuel",
+    "FinalEventA",
+    "FinalEventB",
+    "FinalEventC",
+    "FinalEventD",
+    "Finished"
+   ],
+   "notes": "CD2_EEscort_State display names; produced by CD2_Escort_Monitor::GetEscortState (Escort_Monitor.cpp:33-95)",
+   "src": "CustomDifficulty2/Monitors/Mission/CD2_EEscort_State.h:5"
+  },
+  "RefineryPhase": {
+   "values": [
+    "Default",
+    "Landing",
+    "ConnectingPipes",
+    "PipesConnected",
+    "Refining",
+    "RefiningStalled",
+    "RefiningComplete",
+    "RocketLaunched"
+   ],
+   "notes": "CD2_ERefinery_State; enum 'Default' coincides with the mutator's Default key",
+   "src": "CustomDifficulty2/Monitors/Mission/CD2_ERefinery_State.h:5"
+  },
+  "SaboPhase": {
+   "values": [
+    "Default",
+    "Hacking",
+    "BetweenHacks",
+    "HackingFinished",
+    "Phase1Vent",
+    "Phase1Eye",
+    "Phase2Vent",
+    "Phase2Eye",
+    "Phase3Vent",
+    "Phase3Eye",
+    "Finished"
+   ],
+   "notes": "CD2_ESabo_State; produced by CD2_Sabo_Monitor::GetSaboState",
+   "src": "CustomDifficulty2/Monitors/Mission/CD2_ESabo_State.h:5"
+  },
+  "SalvagePhase": {
+   "values": [
+    "Mules",
+    "PreUplink",
+    "Uplink",
+    "PreRefuel",
+    "Refuel",
+    "Finished"
+   ],
+   "notes": "BySalvagePhase.ValidStates (plus key Default); computed in the mutator, no monitor",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySalvagePhase.h:9"
+  },
+  "MissionState": {
+   "values": [
+    "Default",
+    "Encounter",
+    "Swarm",
+    "Extraction",
+    "Event"
+   ],
+   "notes": "CD2_EMission_State; Mission monitor CheckState always returns Default and no mutator in this set reads it",
+   "src": "CustomDifficulty2/Monitors/Mission/CD2_EMission_State.h:5"
+  },
+  "BiomeKey": {
+   "values": {
+    "AzureWeald": "BIOME_AzureWeald",
+    "CrystalCaves": "BIOME_CrystalCaves",
+    "CrystallineCaverns": "BIOME_CrystalCaves",
+    "FungusBogs": "BIOME_FungusBogs",
+    "HollowBough": "BIOME_HollowBough",
+    "IceCaves": "BIOME_IceCaves",
+    "GlacialStrata": "BIOME_IceCaves",
+    "MagmaCaves": "BIOME_MagmaCaves",
+    "MagmaCore": "BIOME_MagmaCaves",
+    "SandblastedCorridors": "BIOME_SandblastedCorridors",
+    "Sandblasted": "BIOME_SandblastedCorridors",
+    "RadioactiveExclusionZone": "BIOME_RadioactiveZone",
+    "RadioactiveZone": "BIOME_RadioactiveZone",
+    "REZ": "BIOME_RadioactiveZone",
+    "SaltCaves": "BIOME_SaltCaves",
+    "SaltPits": "BIOME_SaltCaves",
+    "Default": "Default",
+    "LushDownpour": "BIOME_LushDownpour",
+    "Biozone": "BIOME_LushDownpour",
+    "DenseBiozone": "BIOME_LushDownpour"
+   },
+   "notes": "ByBiome.KeyToBiomeName: config key -> biome asset name (10 biomes)",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByBiome.h:7"
+  },
+  "MissionType": {
+   "values": {
+    "GM_EggCollection_C": "Egg",
+    "GM_Elimination_C": "Elimination",
+    "GM_Escort_C": "Escort",
+    "GM_Mining_C": "Mining",
+    "GM_Motherlode_C": "PE",
+    "GM_Refinery_C": "Refinery",
+    "GM_Facility_C": "Sabotage",
+    "GM_Salvage_C": "Salvage",
+    "GM_DeepScan_C": "DeepScan"
+   },
+   "notes": "ByMissionType.ClassNameToKey: game-mode class -> key; keys = MissionTypeKeys",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByMissionType.h:7"
+  },
+  "DNAMissionType": {
+   "values": [
+    "egg",
+    "elimination",
+    "escort",
+    "mining",
+    "pe",
+    "refinery",
+    "sabotage",
+    "salvage",
+    "deepscan",
+    "x"
+   ],
+   "notes": "ByDNA.ClassNameToKey values (lowercase) plus 'x' = any",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/ByDNA.h:10"
+  },
+  "SecondaryObjective": {
+   "values": [
+    "OBJ_1st_DeepScan_C",
+    "OBJ_WRN_Plague_C",
+    "OBJ_1st_Facility_C",
+    "OBJ_1st_Escort_C",
+    "OBJ_DD_RepairMinimules_C",
+    "OBJ_Gather_Gems_Base_C",
+    "OBJ_1st_Gather_AlienEggs_C",
+    "OBJ_1st_PointExtraction_C",
+    "OBJ_Elimination_Base_C",
+    "OBJ_Eliminate_Eggs_C",
+    "OBJ_FindItems_Base_C",
+    "OBJ_Extraction_Base_C",
+    "OBJ_1st_Extraction_C",
+    "OBJ_1st_Refinery_C",
+    "OBJ_2nd_Mine_Dystrum_C",
+    "OBJ_DD_Defense_C",
+    "OBJ_1st_Salvage_C",
+    "OBJ_2nd_Mine_Hollomite_C",
+    "OBJ_2nd_KillFleas_C",
+    "OBJ_2nd_Find_Gunkseed_C",
+    "OBJ_2nd_Find_Fossil_C",
+    "OBJ_2nd_Find_Ebonut_C",
+    "OBJ_2nd_Find_BooloCap_C",
+    "OBJ_2nd_Find_ApocaBloom_C",
+    "OBJ_2nd_DestroyEggs_C",
+    "OBJ_2nd_DestroyBhaBarnacles_C",
+    "OBJ_DD_DeepScan_C",
+    "OBJ_DD_Morkite_C",
+    "OBJ_DD_Elimination_Eggs_C",
+    "OBJ_DD_AlienEggs_C",
+    "OBJ_DD_MorkiteWell_C",
+    "OBJ_1st_Tutorial_C"
+   ],
+   "notes": "BySecondary.ValidObjectiveKeys; the _C suffix may be omitted in config",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/BySecondary.h:11"
+  },
+  "Resource": {
+   "values": {
+    "Empty Matrix Core": "RES_BlankSchematic",
+    "MiraCoin": "RES_PROXY_Miracle_MiraCoin",
+    "Magnite": "RES_CARVED_Magnite",
+    "Hollomite": "RES_CARVED_Hollomite",
+    "Bismor": "RES_CARVED_Bismor",
+    "Umanite": "RES_CARVED_Umanite",
+    "Red Sugar": "RES_CARVED_RedSugar",
+    "Quantrite": "RES_CARVED_Quantrite",
+    "Oil Shale": "RES_CARVED_OilShale",
+    "Phazyonite": "RES_CARVED_Phazyonite",
+    "Boolo Cap": "RES_COLLECT_Boolo",
+    "Ebonut": "RES_COLLECT_Ebonut",
+    "Apoca Bloom": "RES_COLLECT_Apoca_Bloom",
+    "Fossil": "RES_COLLECT_Fossil",
+    "Gunk Seed": "RES_COLLECT_GunkSeed",
+    "Starch Nut": "RES_COLLECT_Barley4",
+    "Malt Star": "RES_COLLECT_Barley3",
+    "Yeast Cone": "RES_COLLECT_Barley2",
+    "Barley Bulb": "RES_COLLECT_Barley1",
+    "Credits": "RES_Credits",
+    "Data Rack": "RES_FacilityCore",
+    "Ommoran Heartstone": "RES_EMBED_EscortGem",
+    "Egg": "RES_EMBED_AlienEgg",
+    "M.U.L.E. Leg": "RES_MULELeg",
+    "ERR://23¤Y%/": "RES_EMBED_UnknownArtifact",
+    "Compressed Gold": "RES_EMBED_Compressed_Gold",
+    "Jadiz": "RES_EMBED_Jadiz",
+    "Bittergem": "RES_EMBED_Bittergem",
+    "Aquarq": "RES_EMBED_Aquarq",
+    "Enor Pearl": "RES_EMBED_Enor",
+    "Data Cell": "RES_DataCell",
+    "Pool Float": "RES_BeachParty_Inflatable",
+    "Best Wurst Beer Mug": "RES_OktoberfestMug",
+    "Plagueheart": "RES_PlagueHeart",
+    "Anniversary Trophy": "RES_AnniversaryTrophy",
+    "Lunar Dragon": "RES_Lunar2024_Dragon",
+    "Lunar Rabbit": "RES_LunarRabbit",
+    "Tyrant Shard": "RES_HydraWeedCoreFragment",
+    "Battery Pack": "RES_RepairTreasureBox",
+    "Gold": "RES_VEIN_Gold",
+    "Nitra": "RES_VEIN_Nitra",
+    "Morkite": "RES_VEIN_Morkite",
+    "Hox Iron": "RES_VEIN_Iron",
+    "Dystrum": "RES_VEIN_Dystrum",
+    "Croppa": "RES_VEIN_Croppa",
+    "Spring Bunny": "RES_GreatEggHunt_SpringBunny",
+    "Halloween Skull": "RES_Halloween_Skull",
+    "Yuletide Elf": "RES_YuletideElf"
+   },
+   "notes": "CD2_Resource_Monitor.EnglishNames: English name -> RES_* asset name; either form is accepted (non-English names are used as-is)",
+   "src": "CustomDifficulty2/Monitors/Resource/CD2_Resource_Monitor.h:10"
+  },
+  "DreadDescriptor": {
+   "values": [
+    "ED_Spider_Tank_Boss",
+    "ED_Spider_Boss_Heavy",
+    "ED_Spider_Boss_TwinA",
+    "ED_Spider_Boss_TwinB"
+   ],
+   "notes": "DuringDread.DreadDescriptors",
+   "src": "CustomDifficulty2/Mutators/Mutators/Mission/DuringDread.h:10"
+  },
+  "EnemyAggregateType": {
+   "values": [
+    "Min",
+    "Max",
+    "Average"
+   ],
+   "notes": "EnemyDistance/EnemyHealth Type: 'Min', 'Max'; any other string = average",
+   "src": "CustomDifficulty2/Mutators/Mutators/Enemies/EnemyHealth.cpp:211"
+  },
+  "WaveScript": {
+   "values": {
+    "DuringDefend": [
+     "EWC_Salvage_Defend_C"
+    ],
+    "DuringDrillevator": [
+     "EWC_DeepScan_Drillevator_C"
+    ],
+    "DuringEggAmbush": [
+     "EWC_EggHunt_Ambush_C"
+    ],
+    "DuringGenericSwarm": [
+     "EWC_Generic_C"
+    ],
+    "DuringPECountdown": [
+     "EWC_EndMission_MotherLode_C"
+    ],
+    "DuringExtraction": [
+     "EWC_EndMission_C",
+     "EWC_Escort_EndMission_C",
+     "EWC_Salvage_End_C",
+     "EWC_EndMission_MotherLode_C"
+    ],
+    "ElapsedExtraction": [
+     "EWC_Salvage_End_C",
+     "EWC_EndMission_MotherLode_C",
+     "EWC_EndMission_C"
+    ]
+   },
+   "notes": "Wave-script classes each mission-phase mutator watches (CD2_Mission_Monitor active scripted waves)",
+   "src": "CustomDifficulty2/Monitors/Mission/CD2_Mission_Monitor.cpp:342"
+  },
+  "DwarfClass": {
+   "values": {
+    "BP_DrillerCharacter_C": "Driller",
+    "BP_EngineerCharacter_C": "Engineer",
+    "BP_GunnerCharacter_C": "Gunner",
+    "BP_NavigatorCharacter_C": "Scout"
+   },
+   "notes": "Class names counted by *Count mutators",
+   "src": "CustomDifficulty2/Monitors/Player/CD2_Player_Monitor.cpp:495"
+  }
+ }
+}
