@@ -1,0 +1,18 @@
+{
+    "Name": "CD2Builder check",
+    "Vars": {
+        "Scale": {"Type": "Float", "Value": {"Mutate": "ByPlayerCount", "Values": [1, 1.2, 1.4, 1.6]}},
+        "Late": {"Type": "Boolean", "Value": {"Mutate": "IfFloat", "Value": {"Mutate": "ByTime", "InitialValue": 0, "RateOfChange": 1}, ">=": 600, "Then": true, "Else": false}}
+    },
+    "Caps": {
+        "MaxActiveEnemies": [60, 80, 100, 120],
+        "MaxActiveSwarmers": {"Mutate": "Multiply", "A": 60, "B": {"Var": "Scale"}}
+    },
+    "Dwarves": {"RegenHealthPerSecond": {"Mutate": "If", "Condition": {"Var": "Late"}, "Then": 2, "Else": 4}},
+    "Resupply": {"Cost": {"Mutate": "ByResuppliesCalled", "Values": [80, 100, 120]}},
+    "NitraMultiplier": {"Mutate": "ByBiome", "Default": 1, "MagmaCore": 1.2, "GlacialStrata": 0.9},
+    "Enemies": {
+        "ED_Spider_Grunt": {"HealthMultiplier": 1.1, "Resistances": {"FireDamageMultiplier": 0.9}},
+        "CD2B_TankLite": {"Base": "ED_Spider_Tank", "HealthMultiplier": 0.5, "Scale": 0.8, "DisplayName": "Light Praetorian"}
+    }
+}

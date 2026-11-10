@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CD2Builder</title>
+<style>
+:root { --bg:#f7f7f5; --panel:#fff; --fg:#1d1d1b; --mute:#6b6b66; --line:#deded8; --acc:#2f6fd6; --err:#c62828; --warn:#a46200; --sel:#e8f0fd; }
+@media (prefers-color-scheme: dark) { :root { --bg:#17181a; --panel:#1f2023; --fg:#e6e6e3; --mute:#9a9a94; --line:#33353a; --acc:#6ea0ff; --err:#ff6b6b; --warn:#e0a040; --sel:#24324a; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:13px/1.45 system-ui, sans-serif; height:100vh; display:flex; flex-direction:column; }
+header { display:flex; gap:8px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--line); background:var(--panel); flex-wrap:wrap; }
+header h1 { font-size:14px; margin:0 8px 0 0; }
+#fname { color:var(--mute); margin-right:auto; }
+button, select, input { font:inherit; color:inherit; background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:2px 6px; }
+button { cursor:pointer; } button:hover { border-color:var(--acc); }
+main { flex:1; display:flex; min-height:0; }
+#left { flex:3; overflow:auto; padding:10px 12px; }
+#right { flex:2; overflow:auto; border-left:1px solid var(--line); background:var(--panel); padding:10px 12px; min-width:280px; }
+#raw { width:100%; height:100%; font:12px/1.4 ui-monospace, Consolas, monospace; background:var(--panel); border:1px solid var(--line); }
+.node { margin-left:14px; border-left:1px dotted var(--line); padding-left:6px; }
+.row { display:flex; align-items:center; gap:6px; padding:1px 2px; border-radius:3px; }
+.row:hover { background:var(--sel); }
+.row.selected { background:var(--sel); outline:1px solid var(--acc); }
+.key { font-weight:600; cursor:pointer; }
+.key.unknown { text-decoration:wavy underline var(--warn); }
+.type { color:var(--mute); font-size:11px; }
+.row.has-error > .key { color:var(--err); } .row.has-warning > .key { color:var(--warn); }
+.del { border:none; background:none; color:var(--mute); padding:0 4px; } .del:hover { color:var(--err); }
+.add { margin:2px 0 4px 14px; display:flex; gap:4px; }
+input[type=number] { width:90px; } input.text { width:220px; }
+.issue { padding:3px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+.issue .lvl-error { color:var(--err); font-weight:600; } .issue .lvl-warning { color:var(--warn); font-weight:600; }
+.path { font-family:ui-monospace, Consolas, monospace; font-size:11px; color:var(--mute); word-break:break-all; }
+#detail { white-space:pre-wrap; } #detail code { font-size:11px; }
+.tabs button.on { border-color:var(--acc); color:var(--acc); }
+h2 { font-size:13px; margin:12px 0 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>CD2Builder</h1><span id="fname">new difficulty</span>
+  <span class="tabs"><button id="tabTree" class="on">Tree</button><button id="tabRaw">JSON</button></span>
+  <button id="open">Open…</button><input id="fileIn" type="file" accept=".json,application/json" hidden>
+  <button id="save" hidden>Save</button><button id="export">Export</button>
+</header>
+<main>
+  <div id="left"><div id="tree"></div><textarea id="raw" hidden spellcheck="false"></textarea></div>
+  <div id="right"><h2 id="sum">Issues</h2><div id="issues"></div><h2>Selected</h2><div id="detail" class="type">Click a key.</div></div>
+</main>
+<script>
+'use strict';
+let S = null, doc = {Name: 'New Difficulty', Description: ''}, serverPath = null, issues = [], selPath = null;
+const $ = id => document.getElementById(id);
+const MUT = ['float', 'bool', 'string', 'stringlist', 'floatarray', 'randinterval'];
+
+// Schema helpers: the same lookups cd2b.py's Checker does, so the tree offers what the validator accepts.
+const resolve = e => { while (e && e.ref) { const {ref, ...rest} = e; e = {...S.defs[ref], ...rest}; } return e || {}; };
+const findKey = (d, k) => k in d ? k : Object.keys(d).find(x => x.toLowerCase() === k.toLowerCase());
+const accepts = kind => (S.values[kind] || {}).accepts || [kind];
+function blank(e) {
+  e = resolve(e);
+  if ('default' in e) return JSON.parse(JSON.stringify(e.default));
+  if (e.type === 'object') { const o = {}; for (const [k, f] of Object.entries(e.fields || {})) if (resolve(f).required) o[k] = blank(f); return o; }
+  return ({float: 0, bool: false, string: '', stringlist: [], rawnumber: 0, rawbool: false, rawstring: '',
+           object: {}, map: {}, array: [], switch: {}, oneof: blank((e.options || [{}])[0])})[e.type] ?? null;
+}
+const isMut = v => v && typeof v === 'object' && !Array.isArray(v) && findKey(v, 'Mutate') !== undefined;
+const isVar = v => v && typeof v === 'object' && !Array.isArray(v) && findKey(v, 'Var') !== undefined;
+const typeLabel = e => { e = resolve(e); return e.type === 'oneof' ? e.options.map(o => resolve(o).type).join(' | ') : (e.type || 'any'); };
+
+// ---- rendering
+
+function render() {
+  const t = $('tree'); t.innerHTML = '';
+  t.appendChild(objNode(doc, {type: 'object', fields: S.modules, unknown: 'error'}, '', true));
+  mark(); $('raw').value = JSON.stringify(doc, null, 4);
+}
+
+function row(key, path, e, parent, holder, extraEls) {
+  const r = document.createElement('div'); r.className = 'row'; r.dataset.path = path;
+  const k = document.createElement('span'); k.className = 'key' + (e ? '' : ' unknown'); k.textContent = key;
+  k.onclick = () => select(path, key, e);
+  r.appendChild(k);
+  const ty = document.createElement('span'); ty.className = 'type'; ty.textContent = e ? typeLabel(e) : 'not in schema';
+  r.appendChild(ty);
+  extraEls.forEach(x => r.appendChild(x));
+  if (holder) {
+    const d = document.createElement('button'); d.className = 'del'; d.title = 'remove'; d.textContent = '✕';
+    d.onclick = () => { Array.isArray(holder) ? holder.splice(key, 1) : delete holder[key]; changed(); };
+    r.appendChild(d);
+  }
+  return r;
+}
+
+// One key/value pair: the value's editor sits on the row, its children (object, map, mutator params) below it.
+function pair(holder, key, e, path) {
+  const wrap = document.createElement('div');
+  const v = holder[key];
+  const set = nv => { holder[key] = nv; changed(); };
+  const {inline, kids} = valueEditor(v, e, path, set);
+  wrap.appendChild(row(String(key), path, e, null, holder, inline));
+  if (kids) wrap.appendChild(kids);
+  return wrap;
+}
+
+function valueEditor(v, e, path, set) {
+  if (!e) return {inline: [rawInput(v, set)], kids: null};
+  e = resolve(e);
+  const t = e.type;
+  if (MUT.includes(t)) return mutValue(v, t, e, path, set);
+  if (t === 'object') return {inline: [], kids: objNode(v, e, path)};
+  if (t === 'map') return {inline: [], kids: mapNode(v, e, path)};
+  if (t === 'array') return {inline: [], kids: arrNode(v, e.items, path)};
+  if (t === 'oneof') {
+    const i = Math.max(0, e.options.findIndex(o => matches(v, o)));
+    const sel = choice(e.options.map(o => typeLabel(o)), i, j => set(blank(e.options[j])));
+    const inner = valueEditor(v, e.options[i], path, set);
+    return {inline: [sel, ...inner.inline], kids: inner.kids};
+  }
+  if (t === 'switch') {
+    const names = Object.keys(e.cases), k = v && typeof v === 'object' ? findKey(v, e.field) : undefined;
+    const i = Math.max(0, names.indexOf(k !== undefined ? v[k] : ''));
+    const sel = choice(names, i, j => { const c = names[j]; const nv = blank(e.cases[c]); nv[e.field] = c; set(nv); });
+    return {inline: [sel], kids: objNode(v, resolve(e.cases[names[i]]), path, false, [e.field])};
+  }
+  if (t === 'rawnumber') return {inline: [numInput(v, set)], kids: null};
+  if (t === 'rawbool') return {inline: [boolInput(v, set)], kids: null};
+  if (t === 'rawstring') return {inline: [textInput(v, e, set)], kids: null};
+  return {inline: [rawInput(v, set)], kids: null};
+}
+
+function matches(v, o) {
+  const t = resolve(o).type;
+  return t === 'array' ? Array.isArray(v) : t === 'object' || t === 'map' ? v && typeof v === 'object' && !Array.isArray(v) : true;
+}
+
+// A CD2 value: switch between a literal, a mutator and a variable, then edit that form.
+function mutValue(v, kind, e, path, set) {
+  const forms = ['literal', 'Mutate', 'Var'];
+  const form = isMut(v) ? 1 : isVar(v) ? 2 : 0;
+  const sw = choice(forms, form, j => set(j === 0 ? blank({type: kind, default: e.default}) : j === 1 ? {Mutate: firstMutator(kind)} : {Var: Object.keys(doc.Vars || {})[0] || ''}));
+  if (form === 1) return {inline: [sw, mutPicker(v, kind, set)], kids: mutParams(v, kind, path)};
+  if (form === 2) {
+    const names = Object.keys(doc.Vars || {});
+    const vk = findKey(v, 'Var');
+    return {inline: [sw, choice(names.length ? names : ['(no Vars)'], Math.max(0, names.indexOf(v[vk])), j => { v[vk] = names[j]; changed(); })], kids: null};
+  }
+  if (kind === 'float') return {inline: [sw, Array.isArray(v) ? note('per player count') : numInput(v, set)], kids: Array.isArray(v) ? arrNode(v, {type: 'float'}, path) : null};
+  if (kind === 'bool') return {inline: [sw, boolInput(v, set)], kids: null};
+  if (kind === 'string') return {inline: [sw, textInput(v, e, set)], kids: null};
+  if (kind === 'stringlist') {
+    if (!Array.isArray(v)) return {inline: [sw, textInput(v, e, set)], kids: null};
+    return {inline: [sw], kids: arrNode(v, {type: 'string', enum: e.enum}, path)};
+  }
+  return {inline: [sw, rawInput(v, set)], kids: null};
+}
+
+const mutatorsFor = kind => Object.keys(S.mutators).filter(n => { const r = S.mutators[n].returns; return r === 'any' || accepts(kind).includes(r); }).sort();
+const firstMutator = kind => mutatorsFor(kind)[0] || '';
+function mutPicker(v, kind, set) {
+  const mk = findKey(v, 'Mutate'), names = mutatorsFor(kind);
+  if (!names.includes(v[mk])) names.unshift(v[mk]);
+  return choice(names, names.indexOf(v[mk]), j => set({Mutate: names[j]}));
+}
+function mutParams(v, kind, path) {
+  const m = S.mutators[findKey(S.mutators, v[findKey(v, 'Mutate')]) || ''];
+  if (!m) return objNode(v, {type: 'object', fields: {Mutate: {type: 'rawstring'}}, unknown: 'ignored'}, path, false, ['Mutate']);
+  const fields = {};
+  const base = {floatarray: 'float', randinterval: 'float'}[kind] || kind;
+  const typed = e => Array.isArray(e) ? e.map(typed) : e && typeof e === 'object' ? Object.fromEntries(Object.entries(e).map(([k, x]) => [k, k === 'type' && x === 'same' ? base : typed(x)])) : e;
+  for (const [p, pe] of Object.entries(m.params || {})) fields[p] = typed(pe);
+  const extra = m.extra ? typed(m.extra) : null;
+  return objNode(v, {type: 'object', fields, extra, unknown: m.unknown || 'ignored'}, path, false, ['Mutate']);
+}
+
+function objNode(v, e, path, root = false, hide = []) {
+  const box = document.createElement('div'); box.className = root ? '' : 'node';
+  if (!v || typeof v !== 'object' || Array.isArray(v)) { box.appendChild(note('expected an object')); return box; }
+  const fields = e.fields || {};
+  for (const k of Object.keys(v)) {
+    if (hide.includes(k)) continue;
+    const name = findKey(fields, k);
+    box.appendChild(pair(v, k, name !== undefined ? fields[name] : e.extra || null, path + '.' + k));
+  }
+  const missing = Object.keys(fields).filter(f => findKey(v, f) === undefined && !hide.includes(f));
+  const add = document.createElement('div'); add.className = 'add';
+  if (missing.length) {
+    const s = document.createElement('select');
+    s.innerHTML = '<option value="">+ field…</option>' + missing.map(f => `<option>${f}</option>`).join('');
+    s.onchange = () => { if (s.value) { v[s.value] = blank(fields[s.value]); changed(); } };
+    add.appendChild(s);
+  }
+  if (e.extra) add.appendChild(keyAdder(k => { v[k] = blank(e.extra); changed(); }, '+ operand'));
+  if (add.children.length) box.appendChild(add);
+  return box;
+}
+
+function mapNode(v, e, path) {
+  const box = document.createElement('div'); box.className = 'node';
+  if (!v || typeof v !== 'object' || Array.isArray(v)) { box.appendChild(note('expected an object')); return box; }
+  for (const k of Object.keys(v)) box.appendChild(pair(v, k, e.values || null, path + '.' + k));
+  const add = document.createElement('div'); add.className = 'add';
+  add.appendChild(keyAdder(k => { v[k] = blank(e.values || {}); changed(); }, '+ ' + (e.keys || 'key')));
+  box.appendChild(add);
+  return box;
+}
+
+function arrNode(v, item, path) {
+  const box = document.createElement('div'); box.className = 'node';
+  v.forEach((_, i) => box.appendChild(pair(v, i, item || null, `${path}[${i}]`)));
+  const b = document.createElement('button'); b.textContent = '+ item';
+  b.onclick = () => { v.push(blank(item || {})); changed(); };
+  const add = document.createElement('div'); add.className = 'add'; add.appendChild(b); box.appendChild(add);
+  return box;
+}
+
+// ---- inputs
+
+function choice(labels, i, onPick) {
+  const s = document.createElement('select');
+  labels.forEach((l, j) => { const o = document.createElement('option'); o.value = j; o.textContent = l; if (j === i) o.selected = true; s.appendChild(o); });
+  s.onchange = () => onPick(+s.value);
+  return s;
+}
+function numInput(v, set) {
+  const i = document.createElement('input'); i.type = 'number'; i.step = 'any'; i.value = typeof v === 'number' ? v : '';
+  i.onchange = () => set(i.value === '' ? 0 : +i.value); return i;
+}
+function boolInput(v, set) { const i = document.createElement('input'); i.type = 'checkbox'; i.checked = v === true; i.onchange = () => set(i.checked); return i; }
+function textInput(v, e, set) {
+  const i = document.createElement('input'); i.className = 'text'; i.value = typeof v === 'string' ? v : JSON.stringify(v);
+  const choices = Array.isArray(e.enum) ? e.enum : typeof e.enum === 'string' ? ((S.enums[e.enum] || {}).values || []) : e.registry ? (S.registries[e.registry] || []) : [];
+  if (choices.length) {
+    const id = 'dl' + Math.random().toString(36).slice(2); const dl = document.createElement('datalist'); dl.id = id;
+    choices.forEach(c => { const o = document.createElement('option'); o.value = c; dl.appendChild(o); });
+    document.body.appendChild(dl); i.setAttribute('list', id);
+  }
+  i.onchange = () => set(i.value); return i;
+}
+function rawInput(v, set) {
+  const i = document.createElement('input'); i.className = 'text'; i.value = JSON.stringify(v);
+  i.onchange = () => { try { set(JSON.parse(i.value)); } catch { i.style.borderColor = 'var(--err)'; } }; return i;
+}
+function keyAdder(onAdd, label) {
+  const i = document.createElement('input'); i.placeholder = label; i.className = 'text';
+  i.onkeydown = ev => { if (ev.key === 'Enter' && i.value) onAdd(i.value); };
+  return i;
+}
+const note = t => { const s = document.createElement('span'); s.className = 'type'; s.textContent = t; return s; };
+
+// ---- selection, issues, files
+
+function select(path, key, e) {
+  selPath = path; mark();
+  const d = $('detail');
+  if (!e) { d.textContent = `${path}\nNot in CD2's schema here.`; return; }
+  e = resolve(e);
+  const lines = [path, `type: ${typeLabel(e)}`];
+  if ('default' in e) lines.push('default: ' + JSON.stringify(e.default));
+  if (e.enum) lines.push('choices: ' + (Array.isArray(e.enum) ? e.enum : (S.enums[e.enum] || {}).values || []).join(', '));
+  if (e.notes) lines.push('', e.notes);
+  if (e.src) lines.push('', 'CD2 source: ' + e.src);
+  const v = valueAt(path);
+  if (isMut(v)) { const m = S.mutators[findKey(S.mutators, v[findKey(v, 'Mutate')]) || '']; if (m) lines.push('', `${v.Mutate}: returns ${m.returns}`, m.notes || '', m.src ? 'CD2 source: ' + m.src : ''); }
+  d.textContent = lines.join('\n');
+}
+function valueAt(path) {
+  let v = doc; const re = /\.([^.\[]+)|\[(\d+)\]/g; let m;
+  while ((m = re.exec(path)) && v != null) v = v[m[1] ?? +m[2]];
+  return v;
+}
+function mark() {
+  document.querySelectorAll('.row').forEach(r => {
+    const p = r.dataset.path;
+    r.classList.toggle('selected', p === selPath);
+    const mine = issues.filter(i => i[1] === p);
+    r.classList.toggle('has-error', mine.some(i => i[0] === 'error'));
+    r.classList.toggle('has-warning', mine.some(i => i[0] === 'warning'));
+    r.title = mine.map(i => i[0] + ': ' + i[2]).join('\n');
+  });
+}
+let timer = null;
+function changed() { render(); clearTimeout(timer); timer = setTimeout(check, 250); }
+async function check() {
+  issues = await (await fetch('/validate', {method: 'POST', body: JSON.stringify(doc)})).json();
+  const n = issues.filter(i => i[0] === 'error').length;
+  $('sum').textContent = n ? `Issues: ${n} error(s), ${issues.length - n} warning(s)` : issues.length ? `Issues: ${issues.length} warning(s), CD2 would load it` : 'No issues: CD2 would load it';
+  $('issues').innerHTML = '';
+  for (const [lvl, path, msg] of issues) {
+    const d = document.createElement('div'); d.className = 'issue';
+    d.innerHTML = `<span class="lvl-${lvl}">${lvl}</span> ${msg.replace(/</g, '&lt;')}<div class="path">${path}</div>`;
+    d.onclick = () => { selPath = path; mark(); document.querySelector(`.row[data-path="${CSS.escape(path)}"]`)?.scrollIntoView({block: 'center'}); };
+    $('issues').appendChild(d);
+  }
+  mark();
+}
+function load(text, name) {
+  try { doc = JSON.parse(text.replace(/^﻿/, '')); } catch (ex) { alert('Not valid JSON: ' + ex.message); return; }
+  $('fname').textContent = name; changed();
+}
+
+$('open').onclick = () => $('fileIn').click();
+$('fileIn').onchange = async () => { const f = $('fileIn').files[0]; if (f) load(await f.text(), f.name); };
+$('export').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 4) + '\n'], {type: 'application/json'}));
+  a.download = ((doc.Name || 'difficulty') + '').replace(/[^\w\- ]+/g, '_') + '.json'; a.click();
+};
+$('save').onclick = async () => { const r = await (await fetch('/save', {method: 'POST', body: JSON.stringify(doc, null, 4) + '\n'})).json(); $('fname').textContent = r.saved + ' (saved)'; };
+$('tabTree').onclick = () => { $('tree').hidden = false; $('raw').hidden = true; $('tabTree').classList.add('on'); $('tabRaw').classList.remove('on'); render(); };
+$('tabRaw').onclick = () => { $('tree').hidden = true; $('raw').hidden = false; $('tabRaw').classList.add('on'); $('tabTree').classList.remove('on'); $('raw').value = JSON.stringify(doc, null, 4); };
+$('raw').oninput = () => { try { doc = JSON.parse($('raw').value); clearTimeout(timer); timer = setTimeout(check, 400); $('raw').style.borderColor = ''; } catch { $('raw').style.borderColor = 'var(--err)'; } };
+
+(async () => {
+  S = await (await fetch('/schema')).json();
+  const f = await (await fetch('/file')).json();
+  if (f.path) { serverPath = f.path; $('save').hidden = false; }
+  if (f.text != null) load(f.text, f.path); else { $('fname').textContent = f.path ? f.path + ' (new)' : 'new difficulty'; changed(); }
+})();
+</script>
+</body>
+</html>

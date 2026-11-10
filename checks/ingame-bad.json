@@ -1,0 +1,8 @@
+{
+    "Name": "CD2Builder check, broken",
+    "Caps": {"MaxActiveEnemies": "lots", "MaxEnemies": 60},
+    "Dwarves": {"RegenHealthPerSecond": {"Mutate": "Add", "A": [1, 2], "B": 3}},
+    "Resupply": {"Cost": {"Mutate": "NoSuchMutator"}},
+    "Enemies": {"ED_Spider_Grunt": {"Health": 2}},
+    "Bogus": {}
+}
