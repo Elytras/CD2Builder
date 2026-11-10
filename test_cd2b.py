@@ -109,6 +109,36 @@ def test_dsl_build_valid():
         assert not errs, (opt, errs[:5])
 
 
+def test_decompile():
+    """decompile.py's scripts rebuild every example exactly, and the cases that once broke it."""
+    import decompile as dc
+    for p in sorted(glob.glob(os.path.join(HERE, 'examples', '*.json'))):
+        with open(p, encoding='utf-8-sig') as f:
+            doc = json.load(f)
+        assert dc.decompile(doc, p)[1], p
+    by_dna = {'Mutate': 'ByDNA', 'Default': 10, 'PE': 12, 'Mining,2': 12}
+    doc = {'Name': 't',
+           'Vars': {'A': {'Type': 'Float', 'Value': {'Var': 'B'}}, 'B': {'Type': 'Float', 'Value': {'Var': 'A'}},
+                    'If': {'Type': 'Float', 'Value': 1, 'Watch': True}},
+           # A dict on the left of * hands the product to the right operand, which puts itself first.
+           'Caps': {'MaxActiveEnemies': {'Mutate': 'Multiply', 'A': by_dna, 'B': {'Mutate': 'DwarfCount'}},
+                    'MaxActiveSwarmers': {'Mutate': 'Add', 'A': by_dna, 'B': {'Var': 'If'}},
+                    'maxactivecritters': {'Mutate': 'IfFloat', 'Value': 1, '>=': {'Var': 'A'}, 'Then': 2, 'Else': None}},
+           'ElytrasAddon': {'Enemies': {}}}
+    src, ok = dc.decompile(doc, 't')
+    assert ok, src
+    assert 'Var("A")' in src or 'Var("B")' in src   # the cycle is cut with a by-name reference
+    # CD2.sav: a GVAS file with a Difficulties map of name -> JSON text.
+    import struct, tempfile
+    fs = lambda t: struct.pack('<i', len(t.encode()) + 1) + t.encode() + b'\0'
+    sav = (b'GVAS' + fs('Difficulties') + fs('MapProperty') + struct.pack('<q', 0) + fs('StrProperty') * 2 + b'\0' +
+           struct.pack('<ii', 0, 1) + fs('Hazard 5') + fs('{"Name":"Hazard 5"}'))
+    with tempfile.TemporaryDirectory() as d:
+        with open(os.path.join(d, 'CD2.sav'), 'wb') as f:
+            f.write(sav)
+        assert dc.read_sav(os.path.join(d, 'CD2.sav')) == {'Hazard 5': '{"Name":"Hazard 5"}'}
+
+
 def test_pool_formulas():
     ok = ['Self', 'All - Self', 'AllTargets - Damaged & AllDamaged', '(Target + Self) & All', ' damaged ']
     bad = ['', 'Target -', '& Self', 'Target Self', '(Target', 'Target)', 'Nobody', 'Self * 2']

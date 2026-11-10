@@ -29,6 +29,10 @@ does, and export a file CD2 accepts. The DSL stays as one way to write a difficu
   - a raw JSON tab;
   - a live issue list, checked by the same Python validator through the local server.
 - **The DSL** (`cd2_schema.py`) is kept. Its output goes through the same validator.
+- **`decompile.py`** turns difficulties back into DSL scripts: every one in CD2's save (`CD2.sav`, in
+  `FSD/Saved/SaveGames/Mods/`, only read) or one `.json`. Each mutator gets the most readable form that rebuilds it
+  exactly (an operator, a DSL helper, `Mut`, a dict), repeated subtrees become names, and each script is run and
+  compared with the original as CD2 reads it (float32).
 
 ## Schema source
 
@@ -67,7 +71,9 @@ what is still open (`status.open`).
 
 - `python test_cd2b.py` runs the self-check:
   - known-good files load clean: `nightmares.json`, ue-mods' drgq test difficulty, and ECD2A's `nightmares-keys.json`;
-  - hand-broken ones give the error CD2 would.
+  - hand-broken ones give the error CD2 would;
+  - the optimiser's past fold bugs, and the decompiler's round trip.
+- `python fuzz_fold.py [SEED]` fuzzes the constant folder against CD2's arithmetic.
 - In game, through ue-mods' drgq:
   - submit a job whose `difficulty` is a builder export;
   - read CD2's `OnStateChanged … Errors` line;
@@ -83,5 +89,5 @@ what is still open (`status.open`).
 Later:
 
 - Generate the DSL's dataclasses from `cd2.json`, so the two cannot drift.
-- Replace or fix the constant folder.
+- Read a difficulty straight from CD2.sav in the editor, not only through `decompile.py`.
 - A standalone (no-server) build of the editor to share with other CD2 authors. This needs the validator in JS.

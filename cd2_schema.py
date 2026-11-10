@@ -866,6 +866,9 @@ class DifficultyProfile(CD2Object):
     WaveSpawners: Optional[List[WaveSpawner]] = None
     Messages: Optional[List[Message]] = None
     SoundCues: Optional[List[SoundCue]] = None
+    # Top-level modules this class has no field for (ElytrasAddon, EnemiesNoSync's siblings, a key spelt in another
+    # case): written into the root as they are.
+    Extra: Optional[Dict[str, Any]] = None
 
     def optimize(self) -> DifficultyProfile:
         try:
@@ -909,6 +912,9 @@ class DifficultyProfile(CD2Object):
             if key == "Vars" and isinstance(val, list):
                 val = {v.Name: v.definition for v in val if isinstance(v, Variable)}
 
+            if key == "Extra":
+                result.update(obj._serialize(val))
+                continue
             result[key] = obj._serialize(val)
         return result
 
