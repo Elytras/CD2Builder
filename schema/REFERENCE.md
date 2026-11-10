@@ -1862,7 +1862,6 @@ Unknown keys: error. Source: `CustomDifficulty2/Mutators/Mutators/Trigger/Trigge
 
 | param | type | notes | src |
 | --- | --- | --- | --- |
-| `Value` | bool | required; input; any non-reserved key | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:13 |
 | `N` | float | required; cooldown seconds; '"N" seconds must be set.' | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:11 |
 
 ### TriggerDelay -> bool
@@ -1873,7 +1872,6 @@ Unknown keys: error. Source: `CustomDifficulty2/Mutators/Mutators/Trigger/Trigge
 
 | param | type | notes | src |
 | --- | --- | --- | --- |
-| `Value` | bool | required; input; any non-reserved key | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:13 |
 | `N` | float | required; delay seconds | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:11 |
 
 ### TriggerFixedDuration -> bool
@@ -1884,7 +1882,6 @@ Unknown keys: error. Source: `CustomDifficulty2/Mutators/Mutators/Trigger/Trigge
 
 | param | type | notes | src |
 | --- | --- | --- | --- |
-| `Value` | bool | required; input; any non-reserved key | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:16 |
 | `N` | float | required; duration seconds | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:12 |
 | `Reset` | bool | default `false`; when true, a new rising edge while triggered restarts the N-second window | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:14 |
 
@@ -1896,7 +1893,6 @@ Unknown keys: error. Source: `CustomDifficulty2/Mutators/Mutators/Trigger/Trigge
 
 | param | type | notes | src |
 | --- | --- | --- | --- |
-| `Value` | bool | required; input; any non-reserved key (see TriggerOnce) | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:16 |
 | `N` | float | required; 'N must be set'; truncated to int | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:14 |
 | `Reset` | bool |  | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:12 |
 
@@ -1908,7 +1904,6 @@ Unknown keys: error. Source: `CustomDifficulty2/Mutators/Mutators/Trigger/Trigge
 
 | param | type | notes | src |
 | --- | --- | --- | --- |
-| `Value` | float | required; FLOAT input; any non-reserved key; 'Input Value must be set' | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:16 |
 | `RiseOnly` | bool |  | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:12 |
 | `FallOnly` | bool | 'RiseOnly and FallOnly are incompatible' when both keys are given | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:14 |
 
@@ -1920,7 +1915,6 @@ Unknown keys: error. Source: `CustomDifficulty2/Mutators/Mutators/Trigger/Trigge
 
 | param | type | notes | src |
 | --- | --- | --- | --- |
-| `Value` | bool | required; the input. Conventionally 'Value', but ANY key name not reserved is accepted as the input (first such key); a second one -> 'Unexpected field'. Missing -> 'Input Value must be set' | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:11 |
 | `Reset` | bool | while true, the count resets | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:11 |
 
 ### TriggerSometimes -> bool
@@ -1931,7 +1925,6 @@ Unknown keys: error. Source: `CustomDifficulty2/Mutators/Mutators/Trigger/Trigge
 
 | param | type | notes | src |
 | --- | --- | --- | --- |
-| `Value` | bool | required; input; any non-reserved key | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:13 |
 | `P` | float | required; probability, clamped 0..1; 'Probability "P" must be set.' | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:11 |
 
 ### TriggerSustain -> bool
@@ -1942,7 +1935,6 @@ Unknown keys: error. Source: `CustomDifficulty2/Mutators/Mutators/Trigger/Trigge
 
 | param | type | notes | src |
 | --- | --- | --- | --- |
-| `Value` | bool | required; input; any non-reserved key | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:13 |
 | `N` | float | required; hold seconds | CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:11 |
 
 ### TriggerTimer -> bool

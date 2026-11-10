@@ -6254,12 +6254,6 @@
   "TriggerCooldown": {
    "returns": "bool",
    "params": {
-    "Value": {
-     "type": "bool",
-     "required": true,
-     "notes": "input; any non-reserved key",
-     "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:13"
-    },
     "N": {
      "type": "float",
      "required": true,
@@ -6270,17 +6264,17 @@
    "extra": null,
    "unknown": "error",
    "notes": "Output = input && !cooldown; a falling edge of the input starts an N-second cooldown. Requires authority (server).",
-   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:68"
+   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:68",
+   "input": {
+    "type": "bool",
+    "required": true,
+    "notes": "The input, under any one key that is not a named parameter (\"Value\" by convention).",
+    "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerCooldown.cpp:6"
+   }
   },
   "TriggerDelay": {
    "returns": "bool",
    "params": {
-    "Value": {
-     "type": "bool",
-     "required": true,
-     "notes": "input; any non-reserved key",
-     "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:13"
-    },
     "N": {
      "type": "float",
      "required": true,
@@ -6291,17 +6285,17 @@
    "extra": null,
    "unknown": "error",
    "notes": "Replays the input's rising/falling edges N seconds later. Requires authority.",
-   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:68"
+   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:68",
+   "input": {
+    "type": "bool",
+    "required": true,
+    "notes": "The input, under any one key that is not a named parameter (\"Value\" by convention).",
+    "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerDelay.cpp:6"
+   }
   },
   "TriggerFixedDuration": {
    "returns": "bool",
    "params": {
-    "Value": {
-     "type": "bool",
-     "required": true,
-     "notes": "input; any non-reserved key",
-     "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:16"
-    },
     "N": {
      "type": "float",
      "required": true,
@@ -6319,17 +6313,17 @@
    "extra": null,
    "unknown": "error",
    "notes": "A rising edge of the input outputs true for exactly N seconds. Requires authority.",
-   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:76"
+   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:76",
+   "input": {
+    "type": "bool",
+    "required": true,
+    "notes": "The input, under any one key that is not a named parameter (\"Value\" by convention).",
+    "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerFixedDuration.cpp:6"
+   }
   },
   "TriggerNTimes": {
    "returns": "bool",
    "params": {
-    "Value": {
-     "type": "bool",
-     "required": true,
-     "notes": "input; any non-reserved key (see TriggerOnce)",
-     "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:16"
-    },
     "N": {
      "type": "float",
      "required": true,
@@ -6345,17 +6339,17 @@
    "extra": null,
    "unknown": "error",
    "notes": "Input passes through for its first N true periods.",
-   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:76"
+   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:76",
+   "input": {
+    "type": "bool",
+    "required": true,
+    "notes": "The input, under any one key that is not a named parameter (\"Value\" by convention).",
+    "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerNTimes.cpp:6"
+   }
   },
   "TriggerOnChange": {
    "returns": "bool",
    "params": {
-    "Value": {
-     "type": "float",
-     "required": true,
-     "notes": "FLOAT input; any non-reserved key; 'Input Value must be set'",
-     "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:16"
-    },
     "RiseOnly": {
      "type": "bool",
      "required": false,
@@ -6371,17 +6365,17 @@
    "extra": null,
    "unknown": "error",
    "notes": "True on an evaluation where the float differs from the previous one (direction filtered by RiseOnly/FallOnly).",
-   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:78"
+   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:78",
+   "input": {
+    "type": "float",
+    "required": true,
+    "notes": "The input, under any one key that is not a named parameter (\"Value\" by convention).",
+    "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnChange.cpp:6"
+   }
   },
   "TriggerOnce": {
    "returns": "bool",
    "params": {
-    "Value": {
-     "type": "bool",
-     "required": true,
-     "notes": "the input. Conventionally 'Value', but ANY key name not reserved is accepted as the input (first such key); a second one -> 'Unexpected field'. Missing -> 'Input Value must be set'",
-     "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:11"
-    },
     "Reset": {
      "type": "bool",
      "required": false,
@@ -6392,17 +6386,17 @@
    "extra": null,
    "unknown": "error",
    "notes": "Passes the input through only during its first true period (count of rising edges <= 1).",
-   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:54"
+   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:54",
+   "input": {
+    "type": "bool",
+    "required": true,
+    "notes": "The input, under any one key that is not a named parameter (\"Value\" by convention).",
+    "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerOnce.cpp:6"
+   }
   },
   "TriggerSometimes": {
    "returns": "bool",
    "params": {
-    "Value": {
-     "type": "bool",
-     "required": true,
-     "notes": "input; any non-reserved key",
-     "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:13"
-    },
     "P": {
      "type": "float",
      "required": true,
@@ -6413,17 +6407,17 @@
    "extra": null,
    "unknown": "error",
    "notes": "On each rising edge rolls once; if it hits, passes the input through for that true period. Requires authority.",
-   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:68"
+   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:68",
+   "input": {
+    "type": "bool",
+    "required": true,
+    "notes": "The input, under any one key that is not a named parameter (\"Value\" by convention).",
+    "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSometimes.cpp:6"
+   }
   },
   "TriggerSustain": {
    "returns": "bool",
    "params": {
-    "Value": {
-     "type": "bool",
-     "required": true,
-     "notes": "input; any non-reserved key",
-     "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:13"
-    },
     "N": {
      "type": "float",
      "required": true,
@@ -6434,7 +6428,13 @@
    "extra": null,
    "unknown": "error",
    "notes": "Output = input, and stays true N seconds after the input falls. Requires authority.",
-   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:68"
+   "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:68",
+   "input": {
+    "type": "bool",
+    "required": true,
+    "notes": "The input, under any one key that is not a named parameter (\"Value\" by convention).",
+    "src": "CustomDifficulty2/Mutators/Mutators/Trigger/TriggerSustain.cpp:6"
+   }
   },
   "TriggerTimer": {
    "returns": "bool",

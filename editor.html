@@ -170,7 +170,9 @@ function mutParams(v, kind, path) {
   const base = {floatarray: 'float', randinterval: 'float'}[kind] || kind;
   const typed = e => Array.isArray(e) ? e.map(typed) : e && typeof e === 'object' ? Object.fromEntries(Object.entries(e).map(([k, x]) => [k, k === 'type' && x === 'same' ? base : typed(x)])) : e;
   for (const [p, pe] of Object.entries(m.params || {})) fields[p] = typed(pe);
-  const extra = m.extra ? typed(m.extra) : null;
+  // A trigger's input sits under any one free key: offer it as "Value", and show whatever key the file uses.
+  const extra = m.input ? typed(m.input) : m.extra ? typed(m.extra) : null;
+  if (m.input && !Object.keys(v).some(k => k !== 'Mutate' && findKey(fields, k) === undefined)) fields.Value = typed(m.input);
   return objNode(v, {type: 'object', fields, extra, unknown: m.unknown || 'ignored'}, path, false, ['Mutate']);
 }
 

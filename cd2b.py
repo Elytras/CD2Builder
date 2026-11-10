@@ -279,13 +279,19 @@ class Checker:
         if ret != 'any' and ret not in ACCEPTS[kind]:
             self.err(path, 'Mutate Type Error Expected "%s" Found "%s" (%s returns %s)' % (kind, real, real, ret))
         base = SELECT_BASE[kind]
-        params, extra = m.get('params', {}), m.get('extra')
+        params, extra, inp = m.get('params', {}), m.get('extra'), m.get('input')
+        input_key = None
         for k, sub in v.items():
             if k == mkey:
                 continue
             p = find_key(params, k)
             if p is None:
-                if extra and (not extra.get('keys') or find_key({c: 1 for c in extra['keys']}, k)):
+                if inp and input_key is None:   # a trigger's input, under any one free key
+                    input_key = k
+                    self.entry(sub, inp, path + '.' + k, True)
+                elif inp:
+                    self.err(path + '.' + k, 'Unexpected field "%s" (%s already has its input in "%s")' % (k, real, input_key))
+                elif extra and (not extra.get('keys') or find_key({c: 1 for c in extra['keys']}, k)):
                     self.entry(sub, self.typed(extra, base), path + '.' + k, True)
                 elif m.get('unknown', 'ignored') == 'error':
                     self.err(path + '.' + k, '%s has no parameter "%s"' % (real, k))
@@ -296,6 +302,8 @@ class Checker:
         for p, pe in params.items():
             if self.resolve(pe).get('required') and find_key(v, p) is None:
                 self.err(path, '%s needs "%s"' % (real, p))
+        if inp and input_key is None:
+            self.err(path, 'Input Value must be set (%s)' % real)
 
     @staticmethod
     def typed(e, kind):

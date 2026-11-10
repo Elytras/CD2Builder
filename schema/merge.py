@@ -17,6 +17,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PARTS = os.path.join(HERE, 'parts')
 
 
+TRIGGER_INPUTS = {'TriggerCooldown': 'bool', 'TriggerDelay': 'bool', 'TriggerFixedDuration': 'bool',
+                  'TriggerNTimes': 'bool', 'TriggerOnce': 'bool', 'TriggerOnChange': 'float',
+                  'TriggerSometimes': 'bool', 'TriggerSustain': 'bool'}
+
+
 def part(name):
     with open(os.path.join(PARTS, name), encoding='utf-8') as f:
         return json.load(f)
@@ -77,6 +82,18 @@ def main():
                 v.setdefault('params', {}).setdefault(p, pe)
             v['notes'] = (v.get('notes') or '') + ((' | ' + muts[k]['notes']) if muts[k].get('notes') else '')
         muts[k] = v
+
+    # Triggers read their input under the first key that is none of their named ones (`ValueKey = Key` in each
+    # HandleOption, Mutators/Mutators/Trigger/*.cpp): "Value" is a convention. A second such key is an
+    # 'Unexpected field' error; none is 'Input Value must be set'.
+    for name, kind in TRIGGER_INPUTS.items():
+        m = muts[name]
+        given = m.get('params', {}).pop('Value', {})
+        m['input'] = dict(given, type=kind, required=True,
+                          notes='The input, under any one key that is not a named parameter ("Value" by convention).',
+                          src='CustomDifficulty2/Mutators/Mutators/Trigger/%s.cpp:6' % name)
+        m['unknown'] = 'error'
+        m['extra'] = None
 
     values = {k: {'notes': v.get('notes', ''), 'accepts_json': v.get('accepts', []), 'src': v.get('src')}
               for k, v in core['values'].items()}
