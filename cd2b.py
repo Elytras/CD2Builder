@@ -435,7 +435,7 @@ def serve(path, port, browser=True):
             body = self.rfile.read(int(self.headers.get('Content-Length', 0))).decode('utf-8')
             if self.path == '/validate':
                 try:
-                    doc = json.loads(body)
+                    doc = json.loads(body, strict=False)
                 except json.JSONDecodeError as ex:
                     return self.send(200, json.dumps([['error', '.', 'JSON: %s' % ex]]))
                 return self.send(200, json.dumps(validate(doc, schema)))
@@ -464,7 +464,7 @@ def serve(path, port, browser=True):
 
 def read_json(path):
     with open(path, encoding='utf-8-sig') as f:
-        return json.load(f)
+        return json.load(f, strict=False)   # CD2's own saves hold raw newlines in strings
 
 
 def main(argv=None):
