@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Union, Optional, TypeAlias, Sequence
 
@@ -114,6 +115,13 @@ _VALID_SALVAGE_PHASES = {
 # ==========================================
 
 
+def _json_float(x: float) -> float:
+    """Every float is written with 9 significant digits: CD2 parses it into a float32 (about 7), so it sees exactly
+    the same value, and 1/6 reads as 0.166666667. Relative, never absolute: rounding to 6 decimals is what used to
+    turn small constants into 0 (1e-7) and skew per-second rates (1/6000 -> 0.000167)."""
+    return float('%.9g' % x)
+
+
 @dataclass
 class CD2Object:
     def to_dict(self) -> Any:
@@ -131,6 +139,8 @@ class CD2Object:
         return result
 
     def _serialize(self, val):
+        if isinstance(val, float):
+            return _json_float(val)
         if isinstance(val, CD2Object):
             return val.to_dict()
         elif isinstance(val, list):
@@ -986,7 +996,7 @@ def Min(*args, **kwargs) -> Expression:
 
 def Nonzero(value) -> Expression:
     """Returns Bool: True if value != 0, else False."""
-    return Mut("Nonzero", Value=value)
+    return Mut("NonZero", Value=value)
 
 
 # ==========================================
@@ -1619,7 +1629,7 @@ def Eq(a, b) -> Expression:
 
 def Neq(a, b) -> Expression:
     """Returns Boolean: True if A != B."""
-    return IfFloat(a, "!=", b, True, False)
+    return IfFloat(a, "==", b, False, True)   # CD2's IfFloat has no "!="
 
 
 def Gt(a, b) -> Expression:
@@ -1653,8 +1663,8 @@ def Negate(val) -> Expression:
 
 
 def Abs(val) -> Expression:
-    """Returns Float: The absolute value |val|."""
-    return IfFloat(val, "<", 0, Negate(val), val)
+    """Returns Float: The absolute value |val| (CD2's Abs mutator)."""
+    return Mut("Abs", Value=val)
 
 
 def Inverse(val) -> Expression:
@@ -2201,76 +2211,9 @@ def compare_profiles(profile1: DifficultyProfile, profile2: DifficultyProfile):
     return diff
 
 
-def simplify_expression(expr: Expression) -> Expression:
-    """Attempt to simplify constant expressions."""
-    content = expr.content if isinstance(expr, Expression) else expr
-
-    if not isinstance(content, dict):
-        return expr
-
-    mutate = content.get("Mutate")
-
-    # Simplify Add(5, 3) -> 8
-    if mutate == "Add":
-        values = [v for k, v in content.items() if k != "Mutate"]
-        if all(isinstance(v, (int, float)) for v in values):
-            return Expression(sum(values))
-
-    # Simplify Multiply(2, 3) -> 6
-    if mutate == "Multiply":
-        values = [v for k, v in content.items() if k != "Mutate"]
-        if all(isinstance(v, (int, float)) for v in values):
-            result = 1
-            for v in values:
-                result *= v
-            return Expression(result)
-
-    return expr
-
-
 # ==========================================
 # PART 21: EXPRESSION OPTIMIZATION SYSTEM
 # ==========================================
-
-
-class PurityAnalyzer:
-    """Classifies mutators as pure (deterministic) or impure (game state dependent)."""
-
-    PURE_MUTATORS = {
-        # Arithmetic
-        "Add",
-        "Subtract",
-        "Multiply",
-        "Divide",
-        "Pow",
-        "Modulo",
-        "Round",
-        "Ceil",
-        "Floor",
-        "Clamp",
-        "Max",
-        "Min",
-        "Nonzero",
-        # Boolean Logic
-        "And",
-        "Or",
-        "Not",
-        "Nand",
-        "Nor",
-        "Xor",
-        # Conditionals
-        "If",
-        "IfFloat",
-        # String Conversion
-        "Float2String",
-        "Int2String",
-        "Join",
-    }
-
-    @staticmethod
-    def is_pure(mutator_name: str) -> bool:
-        """Returns True if mutator is deterministic (can be evaluated at compile-time)."""
-        return mutator_name in PurityAnalyzer.PURE_MUTATORS
 
 
 class CircularDependencyDetector:
@@ -2365,7 +2308,9 @@ class VariableInliner:
         return self._inline_recursive(expr, constant_map)
 
     def _inline_recursive(self, expr: Any, const_vars: dict) -> Any:
-        """Recursively inline variable references."""
+        """Recursively inline variable references; a NoOptimize subtree keeps its own."""
+        if isinstance(expr, Expression) and getattr(expr, "no_optimize", False):
+            return expr
         if isinstance(expr, Expression):
             content = expr.content
         elif isinstance(expr, dict):
@@ -2396,494 +2341,254 @@ class VariableInliner:
         return expr
 
 
+def _plain(x):
+    """An expression tree as plain JSON data: Expression wrappers peeled, for comparing two trees by value."""
+    if isinstance(x, Expression):
+        return _plain(x.to_dict()) if isinstance(x, Variable) else _plain(x.content)
+    if isinstance(x, dict):
+        return {k: _plain(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_plain(v) for v in x]
+    return x
+
+
+def _same_tree(a, b) -> bool:
+    """Structural equality by JSON text, so true and 1 differ and Expression.__eq__ (which builds an Eq mutator,
+    not a bool) is never called."""
+    return json.dumps(_plain(a), sort_keys=True) == json.dumps(_plain(b), sort_keys=True)
+
+
+def _is_num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _tidy(x):
+    """A folded number: whole values become ints, the rest stay at full precision, so a later fold does not compound
+    a rounding (that cancelled out whole terms). Floats are rounded once, on the way to JSON (_json_float)."""
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        return x
+    if isinstance(x, float) and x.is_integer() and abs(x) < 1e15:
+        return int(x)
+    return x
+
+
+_NOFOLD = object()
+
+
 class ConstantFolder:
-    """Recursively folds deterministic expressions with constant operands."""
+    """Folds pure mutators whose operands are literals, with CD2's own arithmetic as the decompile shows it
+    (schema/REFERENCE.md):
 
-    def __init__(self, purity_analyzer: PurityAnalyzer, precision: int = 6):
-        self.purity = purity_analyzer
-        self.precision = precision
+    - Add / Multiply / Max / Min / And / Or take every key but "Mutate" as an operand, plus each entry of "Values";
+    - Divide is SafeDivide (x / 0 = 0), Modulo is fmod (x % 0 = 0), Round is floor(x + 0.5);
+    - IfFloat has exactly one of ==, >=, >, <=, < (CD2 has no !=).
 
-    def _round(self, value):
-        """Rounds floats to the configured precision. Returns ints as-is."""
-        if isinstance(value, float):
-            return round(value, self.precision)
-        return value
+    Literals are never rewritten: only a folded result is tidied (_tidy). An Expression marked NoOptimize() is left
+    as it is, wherever it sits in the tree. Called by ExpressionOptimizer, bottom-up."""
 
-    def _get_raw(self, val):
-        """Unwraps Expression objects to their raw content."""
-        if isinstance(val, Expression):
-            return val.content
-        return val
+    COMMUTATIVE = {
+        'add': (lambda xs: sum(xs), 0, _is_num),
+        'multiply': (lambda xs: math.prod(xs), 1, _is_num),
+        'max': (max, None, _is_num),
+        'min': (min, None, _is_num),
+        'and': (all, True, lambda v: isinstance(v, bool)),
+        'or': (any, False, lambda v: isinstance(v, bool)),
+    }
+    # The value that decides the result whatever the other operands are. ponytail: x * 0 folds to 0 even when x
+    # could be NaN at run time (only a Pow of a negative base can make one).
+    ABSORBING = {'multiply': 0, 'and': False, 'or': True}
+    COMPARISONS = {'==': lambda a, b: a == b, '>=': lambda a, b: a >= b, '>': lambda a, b: a > b,
+                   '<=': lambda a, b: a <= b, '<': lambda a, b: a < b}
 
-    def _is_literal(self, val, target_val):
-        """Safely checks if val is a literal primitive equal to target_val."""
-        raw = self._get_raw(val)
-        if isinstance(raw, (dict, list)):
-            return False
-        if not isinstance(raw, (int, float)):
-            return False
-        return raw == target_val
+    def __init__(self, purity_analyzer=None, precision=None):
+        pass   # both kept for callers' signatures; purity is the set of mutators _try_fold knows
 
-    def optimize(
-        self, expr: Any, variables: Optional[Dict[str, Variable]] = None
-    ) -> Any:
-        """Fold constant expressions recursively (bottom-up)."""
-        if variables is None:
-            variables = {}
-
-        # 1. Handle primitives
-        if isinstance(expr, float):
-            return self._round(expr)
-        if isinstance(expr, (int, str, bool, type(None))):
+    def optimize(self, expr: Any, variables: Optional[Dict[str, Variable]] = None) -> Any:
+        if isinstance(expr, Expression) and getattr(expr, 'no_optimize', False):
             return expr
+        x = expr.content if isinstance(expr, Expression) and not isinstance(expr, Variable) else expr
+        if isinstance(x, list):
+            return [self.optimize(v) for v in x]
+        if not isinstance(x, dict):
+            return x
+        content = {k: self.optimize(v) for k, v in x.items()}
+        name = content.get('Mutate')
+        if isinstance(name, str):
+            folded = self._try_fold(name.lower(), content)
+            if folded is not _NOFOLD:
+                return folded
+        return Expression(content) if isinstance(expr, Expression) else content
 
-        raw_content = self._get_raw(expr)
+    @staticmethod
+    def _lit(v):
+        """A literal's value, or _NOFOLD for anything that is not one (a mutator, a Var, a NoOptimize leaf)."""
+        if isinstance(v, Expression):
+            return _NOFOLD
+        return v if isinstance(v, (bool, int, float, str)) else _NOFOLD
 
-        # 2. Handle Lists
-        if isinstance(raw_content, list):
-            return [self.optimize(item, variables) for item in raw_content]
+    def _try_fold(self, m: str, c: dict):
+        ops = {k: v for k, v in c.items() if k != 'Mutate'}
+        lit = self._lit
+        if m in self.COMMUTATIVE:
+            return self._fold_commutative(m, c['Mutate'], ops)
+        if m in ('subtract', 'divide', 'pow', 'modulo'):
+            if set(ops) != {'A', 'B'}:
+                return _NOFOLD
+            a, b = lit(ops['A']), lit(ops['B'])
+            if _is_num(a) and _is_num(b):
+                if m == 'subtract':
+                    return _tidy(a - b)
+                if m == 'divide':
+                    return 0 if b == 0 else _tidy(a / b)
+                if m == 'modulo':
+                    return 0 if b == 0 else _tidy(math.fmod(a, b))
+                try:
+                    r = math.pow(a, b)
+                except (ValueError, OverflowError):
+                    return _NOFOLD   # NaN / overflow: leave it to CD2
+                return _tidy(r) if math.isfinite(r) else _NOFOLD
+            # Identities that hold for every value of the other side.
+            if m == 'subtract' and b == 0 and _is_num(b):
+                return ops['A']
+            if m == 'divide' and _is_num(b) and b == 1:
+                return ops['A']
+            if m == 'divide' and _is_num(a) and a == 0:
+                return 0      # 0 / x is 0, and SafeDivide makes 0 / 0 zero too
+            if m == 'pow' and _is_num(b) and b == 1:
+                return ops['A']
+            return _NOFOLD
+        if m in ('round', 'ceil', 'floor', 'abs'):
+            v = lit(ops.get('Value', _NOFOLD))
+            if set(ops) != {'Value'} or not _is_num(v):
+                return _NOFOLD
+            return {'round': lambda x: math.floor(x + 0.5), 'ceil': math.ceil, 'floor': math.floor,
+                    'abs': lambda x: _tidy(abs(x))}[m](v)
+        if m == 'clamp':
+            v, lo, hi = (lit(ops.get(k, _NOFOLD)) for k in ('Value', 'Min', 'Max'))
+            if set(ops) == {'Value', 'Min', 'Max'} and all(_is_num(x) for x in (v, lo, hi)):
+                return _tidy(max(lo, min(hi, v)))   # Max first, then Min: Min wins when Min > Max
+            return _NOFOLD
+        if m == 'nonzero':
+            v = lit(ops.get('Value', _NOFOLD))
+            return v != 0 if set(ops) == {'Value'} and _is_num(v) else _NOFOLD
+        if m == 'not':
+            v = lit(ops.get('Value', _NOFOLD))
+            return (not v) if set(ops) == {'Value'} and isinstance(v, bool) else _NOFOLD
+        if m == 'if':
+            cond = lit(ops.get('Condition', _NOFOLD))
+            if set(ops) == {'Condition', 'Then', 'Else'} and isinstance(cond, bool):
+                return ops['Then'] if cond else ops['Else']
+            return _NOFOLD
+        if m == 'iffloat':
+            cmp = [k for k in ops if k in self.COMPARISONS]
+            if len(cmp) != 1 or set(ops) != {'Value', cmp[0], 'Then', 'Else'}:
+                return _NOFOLD
+            v, bench = lit(ops['Value']), lit(ops[cmp[0]])
+            if _is_num(v) and _is_num(bench):
+                return ops['Then'] if self.COMPARISONS[cmp[0]](v, bench) else ops['Else']
+        return _NOFOLD
 
-        # 3. Handle Dictionaries
-        if isinstance(raw_content, dict):
-            optimized = {}
-            for k, v in raw_content.items():
-                if isinstance(v, (Expression, dict, list)):
-                    optimized[k] = self.optimize(v, variables)
-                elif isinstance(v, float):
-                    optimized[k] = self._round(v)
-                else:
-                    optimized[k] = v
-            content = optimized
-
-            if "Mutate" in content:
-                mutator_name = content.get("Mutate")
-                # We can try to fold even if impure to check for identities (like x*0),
-                # but generally we respect purity. Assumed Add/Sub/Div/Mul are pure.
-                if mutator_name and self.purity.is_pure(mutator_name):
-                    folded = self._try_fold(mutator_name, content)
-                    if folded is not None:
-                        return folded
-
-            return Expression(content) if isinstance(expr, Expression) else content
-
-        return expr
-
-    def _try_fold(self, mutator_name: str, content: dict):
-        """Attempt to fold a mutator. Returns None if cannot fold."""
-        operands = {k: v for k, v in content.items() if k != "Mutate"}
-
-        # === 1. Smart Aggregation for ADD ===
-        if mutator_name == "Add":
-            numeric_sum = 0
-            complex_operands = {}
-            constant_keys = []
-
-            for k, v in operands.items():
-                raw = self._get_raw(v)
-                if isinstance(raw, (int, float)):
-                    numeric_sum += raw
-                    constant_keys.append(k)
-                else:
-                    complex_operands[k] = v
-
-            numeric_sum = self._round(numeric_sum)
-
-            if not complex_operands:
-                return numeric_sum
-
-            # Explicitly type hint to avoid ambiguity
-            result: Dict[str, Any] = {"Mutate": "Add"}
-
-            if numeric_sum == 0:
-                if len(complex_operands) == 1:
-                    return list(complex_operands.values())[0]
-                result.update(complex_operands)
-                return result
-
-            result.update(complex_operands)
-
-            target_key = constant_keys[0] if constant_keys else "A"
-            if "A" in constant_keys:
-                target_key = "A"
-            elif "B" in constant_keys:
-                target_key = "B"
-
-            while target_key in result:
-                target_key = "B" if target_key == "A" else "A"
-
-            result[target_key] = numeric_sum
-            return result
-
-        # === 2. Smart Aggregation for MULTIPLY ===
-        elif mutator_name == "Multiply":
-            numeric_product = 1
-            complex_operands = {}
-            constant_keys = []
-
-            for k, v in operands.items():
-                raw = self._get_raw(v)
-                if isinstance(raw, (int, float)):
-                    if raw == 0:
-                        return 0
-                    numeric_product *= raw
-                    constant_keys.append(k)
-                else:
-                    complex_operands[k] = v
-
-            numeric_product = self._round(numeric_product)
-
-            if not complex_operands:
-                return numeric_product
-
-            result: Dict[str, Any] = {"Mutate": "Multiply"}
-
-            if numeric_product == 1:
-                if len(complex_operands) == 1:
-                    return list(complex_operands.values())[0]
-                result.update(complex_operands)
-                return result
-
-            result.update(complex_operands)
-
-            target_key = constant_keys[0] if constant_keys else "A"
-            if "A" in constant_keys:
-                target_key = "A"
-            elif "B" in constant_keys:
-                target_key = "B"
-
-            while target_key in result:
-                target_key = "B" if target_key == "A" else "A"
-
-            result[target_key] = numeric_product
-            return result
-
-        # === 3. Algebraic Identities ===
-
-        elif mutator_name == "Divide":
-            a = operands.get("A")
-            b = operands.get("B")
-            if self._is_literal(a, 0):
-                return 0
-            if self._is_literal(b, 1):
-                return a
-
-        elif mutator_name == "Subtract":
-            a = operands.get("A", 0)
-            b = operands.get("B", 0)
-            if self._is_literal(b, 0):
-                return a
-
-        # === 4. Strict Constant Folding ===
-
-        if not self._all_constant(operands):
-            return None
-
-        try:
-            if mutator_name == "Subtract":
-                a = operands.get("A", 0)
-                b = operands.get("B", 0)
-                if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-                    return self._round(a - b)
-
-            elif mutator_name == "Multiply":
-                # RENAMED to avoid conflict with 'result' dict
-                accum_product = 1
-                for v in operands.values():
-                    if not isinstance(v, (int, float)):
-                        return None
-                    accum_product *= v
-                return self._round(accum_product)
-
-            elif mutator_name == "Divide":
-                a = operands.get("A")
-                b = operands.get("B")
-                if (
-                    isinstance(a, (int, float))
-                    and isinstance(b, (int, float))
-                    and b != 0
-                ):
-                    return self._round(a / b)
-
-            elif mutator_name == "Pow":
-                a = operands.get("A")
-                b = operands.get("B")
-                if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-                    return self._round(a**b)
-
-            elif mutator_name == "Modulo":
-                a = operands.get("A")
-                b = operands.get("B")
-                if (
-                    isinstance(a, (int, float))
-                    and isinstance(b, (int, float))
-                    and b != 0
-                ):
-                    return self._round(a % b)
-
-            elif mutator_name == "Ceil":
-                val = operands.get("Value")
-                if isinstance(val, (int, float)):
-                    import math
-
-                    return math.ceil(val)
-
-            elif mutator_name == "Floor":
-                val = operands.get("Value")
-                if isinstance(val, (int, float)):
-                    import math
-
-                    return math.floor(val)
-
-            elif mutator_name == "Round":
-                val = operands.get("Value")
-                if isinstance(val, (int, float)):
-                    return round(val)
-
-            elif mutator_name == "Max":
-                values = [v for v in operands.values() if isinstance(v, (int, float))]
-                if len(values) == len(operands):
-                    return max(values) if values else None
-
-            elif mutator_name == "Min":
-                values = [v for v in operands.values() if isinstance(v, (int, float))]
-                if len(values) == len(operands):
-                    return min(values) if values else None
-
-            elif mutator_name == "And":
-                if all(isinstance(v, bool) for v in operands.values()):
-                    return all(operands.values())
-
-            elif mutator_name == "Or":
-                if all(isinstance(v, bool) for v in operands.values()):
-                    return any(operands.values())
-
-            elif mutator_name == "Not":
-                val = operands.get("Value")
-                if isinstance(val, bool):
-                    return not val
-
-            elif mutator_name == "If":
-                cond = operands.get("Condition")
-                if isinstance(cond, bool):
-                    return operands.get("Then") if cond else operands.get("Else")
-
-            elif mutator_name == "IfFloat":
-                value = operands.get("Value")
-                then_val = operands.get("Then")
-                else_val = operands.get("Else")
-                op_key = None
-                benchmark = None
-                for key in ["==", "!=", ">", "<", ">=", "<="]:
-                    if key in content:
-                        op_key = key
-                        benchmark = content[key]
-                        break
-
-                if (
-                    op_key
-                    and isinstance(value, (int, float))
-                    and isinstance(benchmark, (int, float))
-                ):
-                    is_match = False
-                    if op_key == "==":
-                        is_match = value == benchmark
-                    elif op_key == "!=":
-                        is_match = value != benchmark
-                    elif op_key == ">":
-                        is_match = value > benchmark
-                    elif op_key == "<":
-                        is_match = value < benchmark
-                    elif op_key == ">=":
-                        is_match = value >= benchmark
-                    elif op_key == "<=":
-                        is_match = value <= benchmark
-
-                    final = then_val if is_match else else_val
-                    if isinstance(final, float):
-                        return self._round(final)
-                    return final
-
-        except (ZeroDivisionError, TypeError, ValueError):
-            return None
-
-        return None
-
-    def _all_constant(self, operands: dict) -> bool:
-        """Check if all operands are constants (no variables, no mutators)."""
-        for v in operands.values():
-            raw = self._get_raw(v)
-            if isinstance(raw, dict) and ("Mutate" in raw or "Var" in raw):
-                return False
-            if isinstance(v, Expression):
-                return False
-        return True
+    # ponytail: merging the literals of x + a + b into x + (a+b) reassociates, which can move the last bit; a Round or
+    # Floor sitting exactly on its boundary then differs (fuzz_fold.py: about 1 tree in 80 000). CD2's float32 is
+    # coarser still. Merge only same-kind literals if that ever matters.
+    def _fold_commutative(self, m, name, ops):
+        fold, identity, is_lit = self.COMMUTATIVE[m]
+        values = ops.get('Values', [])
+        if not isinstance(values, list):
+            return _NOFOLD
+        items = [(k, v) for k, v in ops.items() if k != 'Values'] + [(None, v) for v in values]
+        if not items:
+            return _NOFOLD
+        consts = [self._lit(v) for _, v in items if is_lit(self._lit(v))]
+        rest = [(k, v) for k, v in items if not is_lit(self._lit(v))]
+        if any(isinstance(self._lit(v), (str,)) or (m in ('and', 'or')) != isinstance(self._lit(v), bool)
+               for _, v in items if self._lit(v) is not _NOFOLD):
+            return _NOFOLD   # a literal of the wrong type: CD2 reports it; don't hide it
+        if m in self.ABSORBING and self.ABSORBING[m] in consts:   # consts are all of the op's own type
+            return self.ABSORBING[m]
+        if not rest:
+            return _tidy(fold(consts))
+        folded = _tidy(fold(consts)) if consts else None
+        keep_const = folded is not None and not (identity is not None and folded == identity)
+        if not keep_const and len(rest) == 1:
+            return rest[0][1]
+        if len(consts) <= 1 and (keep_const or not consts):
+            return _NOFOLD   # nothing to merge or drop
+        out = {'Mutate': name}
+        out.update((k, v) for k, v in rest if k is not None)
+        listed = [v for k, v in rest if k is None]
+        if listed:
+            out['Values'] = listed
+        if keep_const:
+            key = next(k for k in (chr(65 + i) for i in range(26)) if k not in out)
+            out[key] = folded
+        return out
 
 
 class NonZeroPromoter:
-    """Promotes (value != 0) patterns to NonZero mutator."""
+    """IfFloat(x == 0) choosing between two bool literals becomes NonZero(x) or Not(NonZero(x)): shorter, and
+    what an author would write. Called by ExpressionOptimizer after folding."""
 
     def optimize(self, expr: Any) -> Any:
-        """Promote IfFloat(val, "!=", 0, ...) patterns to NonZero.
-
-        Args:
-            expr: Expression to optimize
-
-        Returns:
-            Optimized expression
-        """
-        if isinstance(expr, Expression):
-            content = expr.content
-        elif isinstance(expr, dict):
-            content = expr
-        elif isinstance(expr, list):
-            return [self.optimize(item) for item in expr]
-        else:
+        if isinstance(expr, Expression) and getattr(expr, 'no_optimize', False):
             return expr
-
-        if isinstance(content, dict):
-            # Recursively optimize children first
-            optimized = {}
-            for k, v in content.items():
-                if isinstance(v, (Expression, dict)):
-                    optimized[k] = self.optimize(v)
-                elif isinstance(v, list):
-                    optimized[k] = [self.optimize(item) for item in v]
-                else:
-                    optimized[k] = v
-            content = optimized
-
-            # Check if this is a NonZero-promotable IfFloat
-            if content.get("Mutate") == "IfFloat":
-                value = content.get("Value")
-                benchmark = content.get("!=") if "!=" in content else None
-                then_val = content.get("Then")
-                else_val = content.get("Else")
-
-                if benchmark == 0:
-                    # Pattern: IfFloat(val, "!=", 0, True, False) → NonZero(val)
-                    if then_val is True and else_val is False:
-                        return Expression({"Mutate": "Nonzero", "Value": value})
-
-                    # Pattern: IfFloat(val, "!=", 0, False, True) → Not(NonZero(val))
-                    elif then_val is False and else_val is True:
-                        return Expression(
-                            {
-                                "Mutate": "Not",
-                                "Value": {"Mutate": "Nonzero", "Value": value},
-                            }
-                        )
-
+        x = expr.content if isinstance(expr, Expression) and not isinstance(expr, Variable) else expr
+        if isinstance(x, list):
+            return [self.optimize(v) for v in x]
+        if not isinstance(x, dict):
+            return x
+        content = {k: self.optimize(v) for k, v in x.items()}
+        if str(content.get('Mutate', '')).lower() == 'iffloat' and set(content) == {'Mutate', 'Value', '==', 'Then', 'Else'}:
+            bench, then, other = content['=='], content['Then'], content['Else']
+            if _is_num(bench) and bench == 0 and isinstance(then, bool) and isinstance(other, bool) and then != other:
+                nz = {'Mutate': 'NonZero', 'Value': content['Value']}
+                return Expression(nz if not then else {'Mutate': 'Not', 'Value': nz})
         return Expression(content) if isinstance(expr, Expression) else content
 
 
 class RedundantSelectorRemover:
-    """Detects and removes redundant selectors and specific redundant branches."""
+    """Drops selector options equal to their Default, collapses a selector whose options are all its Default, and a
+    per-player list whose entries are all equal. Equality is structural (_same_tree). Called by ExpressionOptimizer."""
 
-    BY_MUTATORS = {
-        "ByBiome",
-        "ByDNA",
-        "ByDDStage",
-        "ByMissionType",
-        "BySecondary",
-        "ByEscortPhase",
-        "ByRefineryPhase",
-        "BySaboPhase",
-        "BySalvagePhase",
-    }
-
-    ARRAY_MUTATORS = {"ByPlayerCount", "ByResuppliesCalled"}
+    BY_MUTATORS = {'bybiome', 'bydna', 'byddstage', 'bymissiontype', 'bysecondary', 'byescortphase',
+                   'byrefineryphase', 'bysabophase', 'bysalvagephase', 'select'}
+    ARRAY_MUTATORS = {'byplayercount', 'byresuppliescalled'}
+    RESERVED = {'Mutate', 'Default', 'Select'}
 
     def optimize(self, expr: Any) -> Any:
-        """Remove redundant branches and selectors."""
-        if isinstance(expr, Expression):
-            content = expr.content
-        elif isinstance(expr, dict):
-            content = expr
-        elif isinstance(expr, list):
-            return [self.optimize(item) for item in expr]
-        else:
+        if isinstance(expr, Expression) and getattr(expr, 'no_optimize', False):
             return expr
-
-        if isinstance(content, dict):
-            optimized = {}
-            for k, v in content.items():
-                if isinstance(v, (Expression, dict)):
-                    optimized[k] = self.optimize(v)
-                elif isinstance(v, list):
-                    optimized[k] = [self.optimize(item) for item in v]
-                else:
-                    optimized[k] = v
-            content = optimized
-
-            mutator_name = content.get("Mutate")
-
-            # Helper to safely get raw value for comparison
-            def get_raw(val):
-                return val.content if isinstance(val, Expression) else val
-
-            # 2. Logic for Key-Value Mutators (ByMissionType, etc)
-            if mutator_name in self.BY_MUTATORS:
-                default_val = content.get("Default")
-                raw_default = get_raw(default_val)
-
-                # A. Partial Stripping
-                keys_to_remove = []
-                for k, v in content.items():
-                    if k in {"Mutate", "Default", "Alias"}:
-                        continue
-                    if get_raw(v) == raw_default:
-                        keys_to_remove.append(k)
-
-                for k in keys_to_remove:
-                    del content[k]
-
-                # B. Total Collapse
-                remaining_keys = [
-                    k for k in content if k not in {"Mutate", "Default", "Alias"}
-                ]
-                if not remaining_keys:
-                    return default_val
-
-            # 3. Logic for Array Mutators (ByPlayerCount)
-            elif mutator_name in self.ARRAY_MUTATORS:
-                values = content.get("Values")
-                if isinstance(values, list) and values:
-                    first_raw = get_raw(values[0])
-
-                    # STRICT CHECK: All items must match the first one
-                    is_redundant = True
-                    for item in values[1:]:
-                        if get_raw(item) != first_raw:
-                            is_redundant = False
-                            break
-
-                    if is_redundant:
-                        return values[0]
-
-            # 4. Logic for Select
-            elif mutator_name == "Select":
-                default_val = content.get("Default")
-                raw_default = get_raw(default_val)
-
-                keys_to_remove = []
-                for k, v in content.items():
-                    if k in {"Mutate", "Select", "Default", "Alias"}:
-                        continue
-                    if get_raw(v) == raw_default:
-                        keys_to_remove.append(k)
-
-                for k in keys_to_remove:
-                    del content[k]
-
-                remaining_options = [
-                    k
-                    for k in content
-                    if k not in {"Mutate", "Select", "Default", "Alias"}
-                ]
-                if not remaining_options:
-                    return default_val
-
+        x = expr.content if isinstance(expr, Expression) and not isinstance(expr, Variable) else expr
+        if isinstance(x, list):
+            return [self.optimize(v) for v in x]
+        if not isinstance(x, dict):
+            return x
+        content = {k: self.optimize(v) for k, v in x.items()}
+        m = str(content.get('Mutate', '')).lower()
+        if m in self.BY_MUTATORS and 'Default' in content:
+            content = {k: v for k, v in content.items()
+                       if k in self.RESERVED or not _same_tree(v, content['Default'])}
+            if not [k for k in content if k not in self.RESERVED]:
+                return content['Default']
+        elif m in self.ARRAY_MUTATORS and set(content) == {'Mutate', 'Values'}:
+            vals = content['Values']
+            if isinstance(vals, list) and vals and all(_same_tree(v, vals[0]) for v in vals[1:]):
+                return vals[0]
         return Expression(content) if isinstance(expr, Expression) else content
+
+
+def _var_refs(tree) -> set:
+    """Every variable name a {"Var": ...} in a serialised profile names, the Vars' own values included."""
+    refs = set()
+    if isinstance(tree, dict):
+        if "Var" in tree and isinstance(tree["Var"], str):
+            refs.add(tree["Var"])
+        for k, v in tree.items():
+            refs |= _var_refs(v)
+    elif isinstance(tree, list):
+        for v in tree:
+            refs |= _var_refs(v)
+    return refs
 
 
 class ExpressionOptimizer:
@@ -2904,9 +2609,8 @@ class ExpressionOptimizer:
         self.enable_selector_removal = enable_selector_removal
 
         self.circular_detector = CircularDependencyDetector()
-        self.purity_analyzer = PurityAnalyzer()
         self.variable_inliner = VariableInliner(self.circular_detector)
-        self.constant_folder = ConstantFolder(self.purity_analyzer)
+        self.constant_folder = ConstantFolder()
         self.nonzero_promoter = NonZeroPromoter()
         self.selector_remover = RedundantSelectorRemover()
 
@@ -2948,27 +2652,18 @@ class ExpressionOptimizer:
         ):
             profile = self._optimize_object(profile, constant_map)
 
-        # Step 6: Remove variables that were completely inlined (became constants)
-        # Keep only variables with non-literal values (expressions) that couldn't be folded
+        # Step 6: drop a variable only when it was folded to a literal, nothing refers to it any more (a reference the
+        # inliner cannot see, inside a NoOptimize subtree or a raw dict, would read a missing variable: 0 in CD2),
+        # and it is neither watched nor NoOptimize.
+        profile.Vars = list(optimized_variables.values()) or None
+        refs = _var_refs(profile._to_dict_impl(profile))
         vars_to_keep = {}
         for name, var in optimized_variables.items():
-            # Skip if marked as no_optimize (must be kept as-is)
-            if getattr(var, "no_optimize", False):
-                vars_to_keep[name] = var
-                continue
-
-            # Keep variable if its value is not a simple constant
             value = var.Value if isinstance(var, Variable) else var
-            if not isinstance(value, (int, float, bool, str)):
-                # Complex value (Expression/dict), keep it
+            if (getattr(var, "no_optimize", False) or getattr(var, "Watch", None)
+                    or not isinstance(value, (int, float, bool, str)) or name in refs):
                 vars_to_keep[name] = var
-
-        # Update Vars - only keep non-constant variables
-        if vars_to_keep:
-            profile.Vars = list(vars_to_keep.values())
-        else:
-            profile.Vars = None
-
+        profile.Vars = list(vars_to_keep.values()) or None
         return profile
 
     def _optimize_variables(
@@ -3007,8 +2702,8 @@ class ExpressionOptimizer:
                 # Try to optimize this variable using current constant map
                 value = var.Value if isinstance(var, Variable) else var
 
-                # Don't process literal constants - keep them as-is
-                if isinstance(value, (int, float, bool, str)):
+                # Literal constants and NoOptimize variables are kept as they are.
+                if isinstance(value, (int, float, bool, str)) or getattr(var, "no_optimize", False):
                     optimized[name] = var
                     continue
 
@@ -3151,6 +2846,7 @@ class ExpressionOptimizer:
             # Since the graph is a reducing DAG, this is guaranteed to finish.
 
             current_obj = expr
+            passes = 0
 
             while True:
                 # Capture state before passes
@@ -3160,7 +2856,7 @@ class ExpressionOptimizer:
                     if isinstance(current_obj, Expression)
                     else current_obj
                 )
-                prev_repr = repr(prev_val)
+                prev_repr = json.dumps(_plain(prev_val), sort_keys=True, default=str)
 
                 # --- Pass 1: Variable Inlining ---
                 # (Might expose new constants)
@@ -3190,9 +2886,10 @@ class ExpressionOptimizer:
                     if isinstance(current_obj, Expression)
                     else current_obj
                 )
-                curr_repr = repr(curr_val)
+                curr_repr = json.dumps(_plain(curr_val), sort_keys=True, default=str)
+                passes += 1
 
-                if prev_repr == curr_repr:
+                if prev_repr == curr_repr or passes >= 20:
                     # No changes occurred in this full cycle; we are stable.
                     break
 

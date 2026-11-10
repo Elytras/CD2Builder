@@ -61,6 +61,54 @@ def test_ecd2a():
     assert not errors(base), errors(base)
 
 
+def test_optimizer():
+    """The DSL's optimizer folds with CD2's arithmetic and never changes what CD2 computes (see cd2_schema.py,
+    ConstantFolder). Each case is a bug the old folder had."""
+    import cd2_schema as cs
+    fold = lambda e: cs._plain(cs.RedundantSelectorRemover().optimize(cs.ConstantFolder().optimize(e)))
+    x = {'Mutate': 'DwarfCount'}
+    assert fold({'Mutate': 'Ceil', 'Value': 1e-7}) == 1             # was 0: every float rounded to 6 decimals
+    assert fold({'Mutate': 'Add', 'A': x, 'B': 1e-7}) == {'Mutate': 'Add', 'A': x, 'B': 1e-7}
+    assert fold({'Mutate': 'Round', 'Value': 0.5}) == 1             # was 0: Python's banker's rounding
+    assert fold({'Mutate': 'Round', 'Value': -1.5}) == -1           # CD2: floor(x + 0.5)
+    assert fold({'Mutate': 'Multiply', 'Values': [x]}) == x          # was the bare list [x]
+    assert fold({'Mutate': 'Add', 'Values': [x, 1], 'C': 2}) == {'Mutate': 'Add', 'Values': [x], 'A': 3}
+    assert fold({'Mutate': 'Modulo', 'A': -1, 'B': 3}) == -1         # fmod, not Python's %
+    assert fold({'Mutate': 'Divide', 'A': 1, 'B': 0}) == 0           # SafeDivide
+    assert isinstance(fold({'Mutate': 'Pow', 'A': -8, 'B': 1 / 3}), dict)   # NaN in CD2: not folded (was complex)
+    assert fold({'Mutate': 'IfFloat', 'Value': 2, '>': 1, 'Then': x, 'Else': 0}) == x
+    assert fold({'Mutate': 'And', 'A': {'Mutate': 'IsSolo'}, 'B': False}) is False
+    assert fold({'Mutate': 'ByBiome', 'Default': 1, 'MagmaCore': 1}) == 1
+    assert fold({'Mutate': 'ByPlayerCount', 'Values': [x, x]}) == x
+    # A NoOptimize subtree is left alone wherever it sits, and a Var it names survives.
+    keep = cs.Mul(2, 3).NoOptimize()
+    assert fold(cs.Expression({'Mutate': 'Add', 'A': keep, 'B': x})) == {'Mutate': 'Add', 'A': {'Mutate': 'Multiply', 'A': 2, 'B': 3}, 'B': x}
+    v = cs.Variable('K', 5)
+    w = cs.Variable('Shown', 1, watch=True)
+    p = cs.DifficultyProfile(Name='t', Vars=[v, w], Caps=cs.CapSettings(
+        MaxActiveEnemies=cs.Expression({'Mutate': 'Add', 'A': cs.Expression({'Var': 'K'}).NoOptimize(), 'B': w})))
+    d = p.to_dict(optimize=True)
+    assert set(d['Vars']) == {'K', 'Shown'}, d
+    # The DSL writes only what CD2 accepts.
+    assert cs.Neq(x, 1).to_dict() == {'Mutate': 'IfFloat', 'Value': x, '==': 1, 'Then': False, 'Else': True}
+    assert cs.Abs(x).to_dict() == {'Mutate': 'Abs', 'Value': x}
+
+
+def test_dsl_build_valid():
+    """nightmares.py's output, optimized and not, loads clean in CD2's rules."""
+    import runpy
+    import cd2_schema as cs
+    got = {}
+    save, cs.DifficultyProfile.save = cs.DifficultyProfile.save, lambda self, *a, **k: got.setdefault('p', self)
+    try:
+        runpy.run_path(os.path.join(HERE, 'nightmares.py'), run_name='__main__')
+    finally:
+        cs.DifficultyProfile.save = save
+    for opt in (False, True):
+        errs = errors(got['p'].to_dict(optimize=opt))
+        assert not errs, (opt, errs[:5])
+
+
 def test_pool_formulas():
     ok = ['Self', 'All - Self', 'AllTargets - Damaged & AllDamaged', '(Target + Self) & All', ' damaged ']
     bad = ['', 'Target -', '& Self', 'Target Self', '(Target', 'Target)', 'Nobody', 'Self * 2']
